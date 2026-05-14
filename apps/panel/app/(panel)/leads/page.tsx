@@ -1,0 +1,82 @@
+import { PageHeader } from '@/components/layout/page-header';
+import { queries } from '@seed-panel/db';
+
+export const metadata = { title: 'Leads' };
+
+/**
+ * Leads — the heart of the CRM side. This stub renders a basic table so we
+ * can verify the database wiring end-to-end. The real version (filters,
+ * search, bulk actions, detail drawer) is built next.
+ */
+export default async function LeadsPage() {
+  const leads = await queries.findLeads({ limit: 50, orderBy: 'score_desc' });
+
+  return (
+    <>
+      <PageHeader
+        title="Leads"
+        description="Businesses scraped via Apify and ready for outreach."
+        actions={
+          <button className="h-9 px-3 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90">
+            New scrape job
+          </button>
+        }
+      />
+
+      <div className="p-8">
+        {leads.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <div className="rounded-lg border border-border overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 text-xs uppercase tracking-wider text-muted-foreground font-mono">
+                <tr>
+                  <th className="text-left px-4 py-2.5 font-normal">Business</th>
+                  <th className="text-left px-4 py-2.5 font-normal">Area</th>
+                  <th className="text-left px-4 py-2.5 font-normal">Category</th>
+                  <th className="text-left px-4 py-2.5 font-normal">Score</th>
+                  <th className="text-left px-4 py-2.5 font-normal">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {leads.map((lead) => (
+                  <tr key={lead.id} className="hover:bg-muted/30">
+                    <td className="px-4 py-3 font-medium">{lead.name}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{lead.areaZone ?? '—'}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{lead.category}</td>
+                    <td className="px-4 py-3">
+                      {lead.leadScore !== null ? (
+                        <span className="font-mono text-xs">{lead.leadScore}</span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-muted text-foreground/80 font-mono">
+                        {lead.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="rounded-lg border border-dashed border-border p-12 text-center max-w-xl mx-auto">
+      <h3 className="font-display font-semibold text-lg">No leads yet</h3>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Run your first scrape job to start collecting leads from Google Maps.
+      </p>
+      <button className="mt-6 h-9 px-3 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90">
+        Start a scrape
+      </button>
+    </div>
+  );
+}

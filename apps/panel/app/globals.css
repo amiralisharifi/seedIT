@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Brand colors live in CSS variables, sourced from config/brand.ts at runtime
+ * (see app/layout.tsx where they're injected as inline <style>). This keeps
+ * Tailwind classes like `bg-primary` always in sync with the deployment's
+ * brand — no recompile needed when colors change in config.
+ *
+ * The default values below are the SEED IT palette and act as fallbacks if
+ * the layout injection fails for any reason.
+ */
+@layer base {
+  :root {
+    /* Brand — overridden by config/brand.ts at boot */
+    --color-primary: 264 70% 51%;
+    --color-primary-foreground: 0 0% 100%;
+    --color-accent: 187 76% 48%;
+    --color-accent-foreground: 222 47% 11%;
+    --color-sidebar: 224 17% 11%;
+    --color-sidebar-foreground: 210 20% 90%;
+    --color-sidebar-border: 222 13% 18%;
+
+    /* Neutral surface — same across deployments */
+    --color-background: 0 0% 100%;
+    --color-foreground: 222 47% 11%;
+    --color-muted: 210 20% 96%;
+    --color-muted-foreground: 215 16% 47%;
+    --color-border: 214 32% 91%;
+
+    /* Fonts — set by layout from brand config */
+    --font-sans: 'Inter', system-ui, sans-serif;
+    --font-display: 'Bricolage Grotesque', serif;
+    --font-arabic: 'Tajawal', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  .dark {
+    --color-background: 224 17% 8%;
+    --color-foreground: 210 20% 96%;
+    --color-muted: 224 17% 14%;
+    --color-muted-foreground: 215 16% 65%;
+    --color-border: 224 17% 18%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  /* Arabic content gets its own font automatically */
+  [lang='ar'],
+  [dir='rtl'] {
+    font-family: var(--font-arabic), system-ui, sans-serif;
+  }
+
+  /* Headings use the display font */
+  h1, h2, h3, h4 {
+    @apply font-display;
+  }
+
+  /* Scrollbar polish — feels like a real product */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { @apply bg-transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-border rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-muted-foreground/30; }
+}
+
+/* Sidebar uses dark surface regardless of light/dark mode */
+.sidebar-surface {
+  background-color: hsl(var(--color-sidebar));
+  color: hsl(var(--color-sidebar-foreground));
+}
