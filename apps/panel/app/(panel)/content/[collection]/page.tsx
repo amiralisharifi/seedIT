@@ -47,9 +47,12 @@ export default async function CollectionListPage({
         title={collection.name}
         description={'description' in collection ? (collection.description as string | undefined) : undefined}
         actions={
-          <button className="h-9 px-3 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90">
+          <a
+            href={`/content/${slug}/new`}
+            className="h-9 px-3 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 inline-flex items-center"
+          >
             New {collection.nameSingular}
-          </button>
+          </a>
         }
       />
 
@@ -79,12 +82,27 @@ export default async function CollectionListPage({
               </thead>
               <tbody className="divide-y divide-border">
                 {(rows as Record<string, unknown>[]).map((row, i) => (
-                  <tr key={(row.id as string) ?? i} className="hover:bg-muted/30">
+                  <tr
+                    key={(row.id as string) ?? i}
+                    className="hover:bg-muted/30 cursor-pointer"
+                    onClick={() => {
+                      window.location.href = `/content/${slug}/${row.id as string}`;
+                    }}
+                  >
                     {collection.listFields.map((field) => (
                       <td key={field} className="px-4 py-3">
                         {renderCell(row[field])}
                       </td>
                     ))}
+                    <td className="px-4 py-3 text-right">
+                      <a
+                        href={`/content/${slug}/${row.id as string}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        Edit →
+                      </a>
+                    </td>
                   </tr>
                 ))}
               </tbody>
