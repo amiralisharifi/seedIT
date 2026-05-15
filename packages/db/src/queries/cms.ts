@@ -54,20 +54,17 @@ export async function listCmsRecords(tableName: string, opts: CmsListOptions = {
 
   // We can't statically know which columns exist beyond the common ones.
   // Drizzle returns the row shape per table — fine at runtime, narrowed at call sites.
-  // @ts-expect-error — table is a union; .deletedAt and .status exist on all of them
   let query = db.select().from(table).where(isNull(table.deletedAt));
 
   if (opts.status) {
-    // @ts-expect-error — .status exists on all CMS tables
     query = db
       .select()
       .from(table)
-      // @ts-expect-error
+      // @ts-expect-error — status exists on most CMS tables but not all; safe at runtime because callers only pass status for collections that have it
       .where(and(isNull(table.deletedAt), eq(table.status, opts.status)));
   }
 
   return query
-    // @ts-expect-error — .createdAt exists on all CMS tables
     .orderBy(desc(table.createdAt))
     .limit(opts.limit ?? 50)
     .offset(opts.offset ?? 0);
@@ -75,14 +72,12 @@ export async function listCmsRecords(tableName: string, opts: CmsListOptions = {
 
 export async function getCmsRecordById(tableName: string, id: string) {
   const table = getCmsTable(tableName);
-  // @ts-expect-error — .id exists on all tables
   const [row] = await db.select().from(table).where(eq(table.id, id)).limit(1);
   return row;
 }
 
 export async function createCmsRecord(tableName: string, data: Record<string, unknown>) {
   const table = getCmsTable(tableName);
-  // @ts-expect-error — generic insert
   const [inserted] = await db.insert(table).values(data).returning();
   return inserted;
 }
@@ -93,13 +88,11 @@ export async function updateCmsRecord(
   data: Record<string, unknown>,
 ) {
   const table = getCmsTable(tableName);
-  // @ts-expect-error — .id exists on all tables
   const [updated] = await db.update(table).set(data).where(eq(table.id, id)).returning();
   return updated;
 }
 
 export async function softDeleteCmsRecord(tableName: string, id: string) {
   const table = getCmsTable(tableName);
-  // @ts-expect-error — .id and .deletedAt exist on all tables
   return db.update(table).set({ deletedAt: new Date() }).where(eq(table.id, id));
 }
