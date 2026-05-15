@@ -11,7 +11,7 @@ export default function LoginPage() {
       <div className="text-center space-y-2">
         <h1 className="text-2xl font-display font-semibold">Sign in to {brand.name}</h1>
         <p className="text-sm text-muted-foreground">
-          We&apos;ll email you a secure sign-in link.
+          Enter your credentials to access the panel.
         </p>
       </div>
       <LoginForm />
