@@ -6,7 +6,7 @@
  * table so you also get the role.
  */
 
-import { createServerClient } from '@supabase/ssr';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { db, users } from '@seed-panel/db';
 import type { PanelUser } from '@seed-panel/core';
@@ -20,7 +20,7 @@ export async function getServerSupabase() {
     {
       cookies: {
         getAll: () => cookieStore.getAll(),
-        setAll: (cookieList) => {
+        setAll: (cookieList: { name: string; value: string; options: CookieOptions }[]) => {
           try {
             cookieList.forEach(({ name, value, options }) => {
               cookieStore.set(name, value, options);
