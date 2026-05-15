@@ -1,7 +1,8 @@
 'use client';
 
-import { useTransition, useState, useRef } from 'react';
+import { useActionState, useRef, useState } from 'react';
 import type { CollectionDefinition, FieldDef } from '@seed-panel/core';
+import type { ActionResult } from '@/app/(panel)/content/[collection]/actions';
 
 const TOP_LEVEL_TYPES = new Set([
   'slug', 'select', 'boolean', 'datetime', 'date',
@@ -34,16 +35,17 @@ function getInitialValue(
     const val = content?.en?.[name];
     return val != null ? String(val) : '';
   }
-  const dbCol = colToDb(name, field);
-  const val = record[dbCol];
+  const db = colToDb(name, field);
+  const val = record[db];
   if (val == null) return '';
   if (field.type === 'tags' && Array.isArray(val)) return val.join(', ');
+  if (typeof val === 'string' && (field.type === 'datetime' || field.type === 'date'))
+    return val.slice(0, 16);
   if (val instanceof Date) return val.toISOString().slice(0, 16);
-  if (typeof val === 'string' && field.type === 'datetime') return val.slice(0, 16);
   return String(val);
 }
 
-/* ─── individual field renderers ─── */
+/* ─── field inputs ─── */
 
 function FieldInput({
   name,
@@ -57,24 +59,21 @@ function FieldInput({
   onTitleChange?: (v: string) => void;
 }) {
   const inputName = `f_${name}`;
-  const label = field.label ?? name.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').trim();
+  const label = field.label ?? name.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').trim();
   const id = `field-${name}`;
 
-  const baseInput =
+  const base =
     'w-full h-10 px-3 rounded-md border border-border bg-background text-sm ' +
     'focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary';
+  const wrap = 'space-y-1.5';
+  const lbl = 'block text-xs font-medium text-muted-foreground capitalize';
+  const help = 'text-xs text-muted-foreground/70';
 
-  const wrapClass = 'space-y-1.5';
-  const labelClass = 'block text-xs font-medium text-muted-foreground capitalize';
-  const helpClass = 'text-xs text-muted-foreground/70';
-
-  if (field.type === 'blocks' || field.type === 'repeater' || field.type === 'imageGallery' || field.type === 'file' || field.type === 'icon') {
+  if (['blocks', 'repeater', 'imageGallery', 'file', 'icon'].includes(field.type)) {
     return (
-      <div className={wrapClass}>
-        <label className={labelClass}>{label}</label>
-        <p className="text-xs text-muted-foreground italic">
-          {field.type} editor — coming soon.
-        </p>
+      <div className={wrap}>
+        <span className={lbl}>{label}</span>
+        <p className="text-xs text-muted-foreground italic">{field.type} — coming soon.</p>
       </div>
     );
   }
@@ -90,41 +89,39 @@ function FieldInput({
           defaultChecked={initialValue === 'true'}
           className="h-4 w-4 rounded border-border accent-primary"
         />
-        <label htmlFor={id} className="text-sm">
-          {label}
-        </label>
-        {field.helpText && <span className={helpClass}>— {field.helpText}</span>}
+        <label htmlFor={id} className="text-sm">{label}</label>
+        {field.helpText && <span className={help}>— {field.helpText}</span>}
       </div>
     );
   }
 
   if (field.type === 'select') {
-    const options =
+    const opts =
       typeof field.options[0] === 'string'
         ? (field.options as string[]).map((o) => ({ value: o, label: o }))
         : (field.options as { value: string; label: string }[]);
     return (
-      <div className={wrapClass}>
-        <label htmlFor={id} className={labelClass}>{label}</label>
+      <div className={wrap}>
+        <label htmlFor={id} className={lbl}>{label}</label>
         <select
           id={id}
           name={inputName}
-          defaultValue={initialValue || (field.default as string | undefined) || options[0]?.value}
-          className={baseInput}
+          defaultValue={initialValue || (field.default as string | undefined) || opts[0]?.value}
+          className={base}
         >
-          {options.map((o) => (
+          {opts.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>
           ))}
         </select>
-        {field.helpText && <p className={helpClass}>{field.helpText}</p>}
+        {field.helpText && <p className={help}>{field.helpText}</p>}
       </div>
     );
   }
 
   if (field.type === 'textarea') {
     return (
-      <div className={wrapClass}>
-        <label htmlFor={id} className={labelClass}>{label}</label>
+      <div className={wrap}>
+        <label htmlFor={id} className={lbl}>{label}</label>
         <textarea
           id={id}
           name={inputName}
@@ -134,88 +131,80 @@ function FieldInput({
           maxLength={field.max}
           className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-y"
         />
-        {field.helpText && <p className={helpClass}>{field.helpText}</p>}
+        {field.helpText && <p className={help}>{field.helpText}</p>}
       </div>
     );
   }
 
   if (field.type === 'richText') {
     return (
-      <div className={wrapClass}>
-        <label htmlFor={id} className={labelClass}>{label} <span className="text-muted-foreground/50">(HTML)</span></label>
+      <div className={wrap}>
+        <label htmlFor={id} className={lbl}>
+          {label} <span className="text-muted-foreground/50 normal-case">(HTML)</span>
+        </label>
         <textarea
           id={id}
           name={inputName}
           defaultValue={initialValue}
-          rows={12}
+          rows={14}
           required={field.required}
           className="w-full px-3 py-2 rounded-md border border-border bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-y"
         />
-        {field.helpText && <p className={helpClass}>{field.helpText}</p>}
+        {field.helpText && <p className={help}>{field.helpText}</p>}
       </div>
     );
   }
 
   if (field.type === 'image') {
     return (
-      <div className={wrapClass}>
-        <label htmlFor={id} className={labelClass}>{label} <span className="text-muted-foreground/50">(URL)</span></label>
+      <div className={wrap}>
+        <label htmlFor={id} className={lbl}>
+          {label} <span className="text-muted-foreground/50 normal-case">(URL)</span>
+        </label>
         {initialValue && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={initialValue} alt="" className="h-24 w-auto rounded-md border border-border object-cover" />
         )}
-        <input
-          type="url"
-          id={id}
-          name={inputName}
-          defaultValue={initialValue}
-          placeholder="https://..."
-          className={baseInput}
-        />
-        {field.helpText && <p className={helpClass}>{field.helpText}</p>}
+        <input type="url" id={id} name={inputName} defaultValue={initialValue} placeholder="https://..." className={base} />
+        {field.helpText && <p className={help}>{field.helpText}</p>}
       </div>
     );
   }
 
   if (field.type === 'tags') {
     return (
-      <div className={wrapClass}>
-        <label htmlFor={id} className={labelClass}>{label}</label>
-        <input
-          type="text"
-          id={id}
-          name={inputName}
-          defaultValue={initialValue}
-          placeholder="tag1, tag2, tag3"
-          className={baseInput}
-        />
-        <p className={helpClass}>Comma-separated</p>
+      <div className={wrap}>
+        <label htmlFor={id} className={lbl}>{label}</label>
+        <input type="text" id={id} name={inputName} defaultValue={initialValue} placeholder="tag1, tag2, tag3" className={base} />
+        <p className={help}>Comma-separated</p>
       </div>
     );
   }
 
   if (field.type === 'datetime') {
     return (
-      <div className={wrapClass}>
-        <label htmlFor={id} className={labelClass}>{label}</label>
-        <input type="datetime-local" id={id} name={inputName} defaultValue={initialValue} className={baseInput} />
+      <div className={wrap}>
+        <label htmlFor={id} className={lbl}>{label}</label>
+        <input type="datetime-local" id={id} name={inputName} defaultValue={initialValue} className={base} />
+        {field.helpText && <p className={help}>{field.helpText}</p>}
       </div>
     );
   }
 
   if (field.type === 'date') {
     return (
-      <div className={wrapClass}>
-        <label htmlFor={id} className={labelClass}>{label}</label>
-        <input type="date" id={id} name={inputName} defaultValue={initialValue} className={baseInput} />
+      <div className={wrap}>
+        <label htmlFor={id} className={lbl}>{label}</label>
+        <input type="date" id={id} name={inputName} defaultValue={initialValue} className={base} />
+        {field.helpText && <p className={help}>{field.helpText}</p>}
       </div>
     );
   }
 
   if (field.type === 'number') {
     return (
-      <div className={wrapClass}>
-        <label htmlFor={id} className={labelClass}>{label}</label>
+      <div className={wrap}>
+        <label htmlFor={id} className={lbl}>{label}</label>
         <input
           type="number"
           id={id}
@@ -224,46 +213,67 @@ function FieldInput({
           min={field.min}
           max={field.max}
           step={field.step}
-          className={baseInput}
+          className={base}
         />
-        {field.helpText && <p className={helpClass}>{field.helpText}</p>}
+        {field.helpText && <p className={help}>{field.helpText}</p>}
       </div>
     );
   }
 
   if (field.type === 'reference') {
     return (
-      <div className={wrapClass}>
-        <label htmlFor={id} className={labelClass}>{label} <span className="text-muted-foreground/50">(ID)</span></label>
-        <input
-          type="text"
-          id={id}
-          name={inputName}
-          defaultValue={initialValue}
-          placeholder="UUID"
-          className={baseInput + ' font-mono text-xs'}
-        />
-        {field.helpText && <p className={helpClass}>{field.helpText}</p>}
+      <div className={wrap}>
+        <label htmlFor={id} className={lbl}>{label} <span className="text-muted-foreground/50 normal-case">(UUID)</span></label>
+        <input type="text" id={id} name={inputName} defaultValue={initialValue} placeholder="UUID" className={`${base} font-mono text-xs`} />
+        {field.helpText && <p className={help}>{field.helpText}</p>}
       </div>
     );
   }
 
-  // text, slug, url, email
+  // slug — use React state so auto-generation is reliable
+  if (field.type === 'slug') {
+    return <SlugInput name={name} field={field} initialValue={initialValue} />;
+  }
+
+  // text, url, email
   return (
-    <div className={wrapClass}>
-      <label htmlFor={id} className={labelClass}>{label}</label>
+    <div className={wrap}>
+      <label htmlFor={id} className={lbl}>{label}</label>
       <input
         type={field.type === 'email' ? 'email' : field.type === 'url' ? 'url' : 'text'}
         id={id}
         name={inputName}
         defaultValue={initialValue}
         required={field.required}
-        maxLength={field.type !== 'slug' && field.type !== 'url' && field.type !== 'email' ? (field as { max?: number }).max : undefined}
-        placeholder={field.type === 'slug' ? 'auto-generated-from-title' : undefined}
-        className={baseInput}
+        maxLength={(field as { max?: number }).max}
+        className={base}
         onChange={name === 'title' && onTitleChange ? (e) => onTitleChange(e.target.value) : undefined}
       />
-      {field.helpText && <p className={helpClass}>{field.helpText}</p>}
+      {field.helpText && <p className={help}>{field.helpText}</p>}
+    </div>
+  );
+}
+
+function SlugInput({ name, field, initialValue }: { name: string; field: FieldDef & { type: 'slug' }; initialValue: string }) {
+  const [value, setValue] = useState(initialValue);
+  const base =
+    'w-full h-10 px-3 rounded-md border border-border bg-background text-sm font-mono ' +
+    'focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary';
+  return (
+    <div className="space-y-1.5">
+      <label htmlFor={`field-${name}`} className="block text-xs font-medium text-muted-foreground capitalize">slug</label>
+      <input
+        type="text"
+        id={`field-${name}`}
+        name={`f_${name}`}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        required={field.required}
+        placeholder="auto-generated-from-title"
+        className={base}
+        data-slug-input="true"
+      />
+      {field.helpText && <p className="text-xs text-muted-foreground/70">{field.helpText}</p>}
     </div>
   );
 }
@@ -277,54 +287,49 @@ export function CollectionForm({
 }: {
   collection: CollectionDefinition;
   record: Record<string, unknown> | null;
-  action: (fd: FormData) => Promise<void>;
+  action: (prev: ActionResult | null, fd: FormData) => Promise<ActionResult>;
 }) {
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
+  const [state, formAction, pending] = useActionState(action, null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  // Auto-slug from title
-  const slugField = Object.entries(collection.fields).find(([, f]) => f.type === 'slug');
-  const slugInputRef = useRef<HTMLInputElement | null>(null);
+  const slugEntry = Object.entries(collection.fields).find(([, f]) => f.type === 'slug');
 
   function handleTitleChange(value: string) {
-    if (!slugField || record) return; // don't overwrite slug on edit
+    if (!slugEntry || record) return;
     const slug = value
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .trim()
       .replace(/\s+/g, '-');
-    const el = formRef.current?.querySelector<HTMLInputElement>(`[name="f_${slugField[0]}"]`);
-    if (el && !el.dataset.touched) el.value = slug;
-  }
-
-  function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    const fd = new FormData(formRef.current!);
-    startTransition(async () => {
-      try {
-        await action(fd);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Something went wrong.');
-      }
-    });
+    // Update the controlled SlugInput by dispatching a native change event
+    const el = formRef.current?.querySelector<HTMLInputElement>('[data-slug-input="true"]');
+    if (el) {
+      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
+      nativeInputValueSetter?.call(el, slug);
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    }
   }
 
   const fieldEntries = Object.entries(collection.fields);
-  // Separate localized vs top-level for visual grouping
   const localizedFields = fieldEntries.filter(([n, f]) => isLocalized(n, f, collection));
   const topFields = fieldEntries.filter(([n, f]) => !isLocalized(n, f, collection));
+  const errorMsg = state && 'error' in state ? state.error : null;
+  const saved = state && 'id' in state;
 
   return (
-    <form ref={formRef} onSubmit={submit} className="space-y-8">
-      {error && (
+    <form ref={formRef} action={formAction} className="space-y-8">
+      {errorMsg && (
         <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
+          <strong>Error:</strong> {errorMsg}
+        </div>
+      )}
+      {saved && !record && (
+        <div className="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+          Saved successfully.
         </div>
       )}
 
-      {/* Localized content */}
       {localizedFields.length > 0 && (
         <section className="space-y-5">
           {collection.localized && (
@@ -345,7 +350,6 @@ export function CollectionForm({
         </section>
       )}
 
-      {/* Top-level / meta fields */}
       {topFields.length > 0 && (
         <section className="space-y-5">
           {localizedFields.length > 0 && (
@@ -355,12 +359,7 @@ export function CollectionForm({
             </div>
           )}
           {topFields.map(([name, field]) => (
-            <FieldInput
-              key={name}
-              name={name}
-              field={field}
-              initialValue={getInitialValue(name, field, collection, record)}
-            />
+            <FieldInput key={name} name={name} field={field} initialValue={getInitialValue(name, field, collection, record)} />
           ))}
         </section>
       )}

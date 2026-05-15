@@ -6,7 +6,6 @@ import { collections } from '@/config';
 import { queries } from '@seed-panel/db';
 import type { CollectionDefinition, FieldDef } from '@seed-panel/core';
 
-// Fields that are always top-level DB columns even in localized collections
 const TOP_LEVEL_TYPES = new Set([
   'slug', 'select', 'boolean', 'datetime', 'date',
   'image', 'imageGallery', 'tags', 'reference',
@@ -20,9 +19,8 @@ function isLocalized(name: string, field: FieldDef, col: CollectionDefinition) {
   return true;
 }
 
-// Map field name → actual DB column name
 function colName(name: string, field: FieldDef): string {
-  if (field.type === 'image') return name.endsWith('Image') ? name + 'Url' : name + 'Url';
+  if (field.type === 'image') return name + 'Url';
   if (field.type === 'reference') return name + 'Id';
   return name;
 }
@@ -62,24 +60,55 @@ function buildRecord(col: CollectionDefinition, fd: FormData): Record<string, un
   return record;
 }
 
-export async function createRecord(collectionSlug: string, fd: FormData) {
+export type ActionResult = { error: string } | { id: string };
+
+export async function createRecord(
+  collectionSlug: string,
+  _prev: ActionResult | null,
+  fd: FormData,
+): Promise<ActionResult> {
   const collection = collections.find((c) => c.slug === collectionSlug);
-  if (!collection) throw new Error(`Collection not found: ${collectionSlug}`);
+  if (!collection) return { error: `Collection not found: ${collectionSlug}` };
 
   const data = buildRecord(collection, fd);
-  const inserted = await queries.createCmsRecord(collection.table, data) as { id: string };
+
+  // Validate required top-level fields
+  const slugField = Object.entries(collection.fields).find(([, f]) => f.type === 'slug');
+  if (slugField && !data[slugField[0]]) {
+    return { error: 'Slug is required. Type a title first so it auto-fills, or enter one manually.' };
+  }
+
+  let inserted: { id: string };
+  try {
+    inserted = (await queries.createCmsRecord(collection.table, data)) as { id: string };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { error: `Database error: ${msg}` };
+  }
 
   revalidatePath(`/content/${collectionSlug}`);
   redirect(`/content/${collectionSlug}/${inserted.id}`);
 }
 
-export async function updateRecord(collectionSlug: string, id: string, fd: FormData) {
+export async function updateRecord(
+  collectionSlug: string,
+  id: string,
+  _prev: ActionResult | null,
+  fd: FormData,
+): Promise<ActionResult> {
   const collection = collections.find((c) => c.slug === collectionSlug);
-  if (!collection) throw new Error(`Collection not found: ${collectionSlug}`);
+  if (!collection) return { error: `Collection not found: ${collectionSlug}` };
 
   const data = buildRecord(collection, fd);
-  await queries.updateCmsRecord(collection.table, id, data);
+
+  try {
+    await queries.updateCmsRecord(collection.table, id, data);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { error: `Database error: ${msg}` };
+  }
 
   revalidatePath(`/content/${collectionSlug}`);
   revalidatePath(`/content/${collectionSlug}/${id}`);
+  return { id };
 }
