@@ -14,7 +14,8 @@
     "AISENSY_API_KEY",
     "APIFY_TOKEN",
     "N8N_WEBHOOK_BASE",
-    "APP_TIMEZONE"
+    "APP_TIMEZONE",
+    "REVALIDATE_SECRET"
   ],
   "tasks": {
     "build": {

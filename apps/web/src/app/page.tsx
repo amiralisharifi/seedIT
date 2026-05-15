@@ -21,6 +21,7 @@ export default function HomePage() {
             <a href="#services">Services</a>
             <a href="#approach">Approach</a>
             <a href="#process">Process</a>
+            <a href="/blog">Blog</a>
             <a href="#contact" className="nav-cta">
               Book a call
               <span className="arrow">→</span>

@@ -1,7 +1,16 @@
+import path from 'node:path';
 import type { NextConfig } from 'next';
 
 const config: NextConfig = {
-  // Marketing site — no panel-specific features needed here
+  turbopack: {
+    root: path.join(__dirname, '..', '..'),
+  },
+  transpilePackages: ['@seed-panel/db'],
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: '*.supabase.co' },
+    ],
+  },
 };
 
 export default config;

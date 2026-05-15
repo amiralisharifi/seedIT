@@ -108,6 +108,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@seed-panel/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       next:
         specifier: 16.2.6
         version: 16.2.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
