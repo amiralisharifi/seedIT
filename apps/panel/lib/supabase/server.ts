@@ -43,27 +43,30 @@ export async function getCurrentUser(): Promise<PanelUser | null> {
   if (!authUser) return null;
 
   // Look up the app-level profile (role, etc.)
-  let profile = await db.query.users.findFirst({
-    where: eq(users.id, authUser.id),
-  });
+  // Wrap in try/catch so a missing DATABASE_URL doesn't crash the whole panel layout.
+  let profile;
+  try {
+    profile = await db.query.users.findFirst({ where: eq(users.id, authUser.id) });
 
-  // If they're authed but missing from our users table, create on the fly.
-  // First sign-in fires multiple server components in parallel, so we need
-  // onConflictDoNothing + refetch to survive the race.
-  if (!profile) {
-    await db
-      .insert(users)
-      .values({
-        id: authUser.id,
-        email: authUser.email ?? '',
-        role: 'admin', // first user is admin; refine when invitation system exists
-      })
-      .onConflictDoNothing();
-    profile = await db.query.users.findFirst({
-      where: eq(users.id, authUser.id),
-    });
-    if (!profile) return null;
+    if (!profile) {
+      await db
+        .insert(users)
+        .values({ id: authUser.id, email: authUser.email ?? '', role: 'admin' })
+        .onConflictDoNothing();
+      profile = await db.query.users.findFirst({ where: eq(users.id, authUser.id) });
+    }
+  } catch {
+    // DB unavailable — return a minimal user so the panel layout doesn't crash
+    return {
+      id: authUser.id,
+      email: authUser.email ?? '',
+      fullName: null,
+      role: 'admin' as PanelUser['role'],
+      isActive: true,
+    };
   }
+
+  if (!profile) return null;
 
   return {
     id: profile.id,

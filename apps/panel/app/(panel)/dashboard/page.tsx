@@ -12,13 +12,20 @@ export const metadata = { title: 'Dashboard' };
  * on this as we use the panel ourselves and learn what we actually care
  * about at a glance.
  */
+const ZERO_METRICS = { newLeads: 0, demosGenerated: 0, outreachSent: 0, replies: 0 };
+
 export default async function DashboardPage() {
   const user = await getCurrentUser();
-  // Pull metrics in parallel
-  const [today, week] = await Promise.all([
-    queries.getDailyMetrics(1),
-    queries.getDailyMetrics(7),
-  ]);
+
+  let today = ZERO_METRICS;
+  let week = ZERO_METRICS;
+  let dbError: string | null = null;
+
+  try {
+    [today, week] = await Promise.all([queries.getDailyMetrics(1), queries.getDailyMetrics(7)]);
+  } catch (e) {
+    dbError = e instanceof Error ? e.message : 'Database unavailable';
+  }
 
   const firstName = user?.fullName?.split(' ')[0] ?? user?.email.split('@')[0];
 
@@ -30,6 +37,11 @@ export default async function DashboardPage() {
       />
 
       <div className="p-8 space-y-8">
+        {dbError && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <strong>Database unreachable:</strong> {dbError}. Check that <code>DATABASE_URL</code> is set in Vercel environment variables.
+          </div>
+        )}
         {/* Today's metrics */}
         <section>
           <div className="mb-3 text-xs uppercase tracking-wider text-muted-foreground font-mono">
