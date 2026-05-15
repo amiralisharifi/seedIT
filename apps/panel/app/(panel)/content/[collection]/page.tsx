@@ -45,7 +45,7 @@ export default async function CollectionListPage({
     <>
       <PageHeader
         title={collection.name}
-        description={collection.description}
+        description={'description' in collection ? (collection.description as string | undefined) : undefined}
         actions={
           <button className="h-9 px-3 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90">
             New {collection.nameSingular}

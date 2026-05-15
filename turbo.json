@@ -12,7 +12,9 @@
     "N8N_SHARED_SECRET",
     "RESEND_API_KEY",
     "AISENSY_API_KEY",
-    "APIFY_TOKEN"
+    "APIFY_TOKEN",
+    "N8N_WEBHOOK_BASE",
+    "APP_TIMEZONE"
   ],
   "tasks": {
     "build": {
