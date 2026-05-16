@@ -55,6 +55,7 @@ export function getNavSections(): NavSection[] {
       title: 'Settings',
       items: [
         { label: 'Brand', href: '/settings/brand', icon: 'palette', adminOnly: true },
+        { label: 'Contact & Social', href: '/settings/contact', icon: 'phone', adminOnly: true },
         { label: 'Team', href: '/settings/team', icon: 'user-plus', adminOnly: true },
         { label: 'Integrations', href: '/settings/integrations', icon: 'plug', adminOnly: true },
         { label: 'Domains', href: '/settings/domains', icon: 'globe', adminOnly: true },

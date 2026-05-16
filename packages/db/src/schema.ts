@@ -583,6 +583,18 @@ export const teamMembers = pgTable('team_members', {
 });
 
 /* ============================================================================
+   SITE SETTINGS — key/value store for runtime-editable config
+============================================================================ */
+
+// Each key holds a JSON blob so you can store structured data per domain.
+// Example keys: 'contact', 'social', 'seo_defaults'
+export const siteSettings = pgTable('site_settings', {
+  key: varchar('key', { length: 100 }).primaryKey(),
+  value: jsonb('value').$type<Record<string, unknown>>().notNull().default({}),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/* ============================================================================
    MEDIA LIBRARY — all image/file uploads
 ============================================================================ */
 
