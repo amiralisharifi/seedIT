@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useRef, useState } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import type { CollectionDefinition, FieldDef } from '@seed-panel/core';
 import type { ActionResult } from '@/app/(panel)/content/[collection]/actions';
 
@@ -121,7 +121,10 @@ function FieldInput({
   if (field.type === 'textarea') {
     return (
       <div className={wrap}>
-        <label htmlFor={id} className={lbl}>{label}</label>
+        <div className="flex items-baseline justify-between">
+          <label htmlFor={id} className={lbl}>{label}</label>
+          {field.max && <CharCounter inputId={id} max={field.max} initial={initialValue.length} />}
+        </div>
         <textarea
           id={id}
           name={inputName}
@@ -236,22 +239,43 @@ function FieldInput({
   }
 
   // text, url, email
+  const textMax = (field as { max?: number }).max;
   return (
     <div className={wrap}>
-      <label htmlFor={id} className={lbl}>{label}</label>
+      <div className="flex items-baseline justify-between">
+        <label htmlFor={id} className={lbl}>{label}</label>
+        {textMax && field.type === 'text' && (
+          <CharCounter inputId={id} max={textMax} initial={initialValue.length} />
+        )}
+      </div>
       <input
         type={field.type === 'email' ? 'email' : field.type === 'url' ? 'url' : 'text'}
         id={id}
         name={inputName}
         defaultValue={initialValue}
         required={field.required}
-        maxLength={(field as { max?: number }).max}
+        maxLength={textMax}
         className={base}
         onChange={name === 'title' && onTitleChange ? (e) => onTitleChange(e.target.value) : undefined}
       />
       {field.helpText && <p className={help}>{field.helpText}</p>}
     </div>
   );
+}
+
+function CharCounter({ inputId, max, initial }: { inputId: string; max: number; initial: number }) {
+  const [count, setCount] = useState(initial);
+  useEffect(() => {
+    const el = document.getElementById(inputId) as HTMLInputElement | HTMLTextAreaElement | null;
+    if (!el) return;
+    const onInput = () => setCount(el.value.length);
+    el.addEventListener('input', onInput);
+    return () => el.removeEventListener('input', onInput);
+  }, [inputId]);
+  const warn = count > Math.floor(max * 0.9);
+  const over = count >= max;
+  const color = over ? 'text-red-600' : warn ? 'text-amber-600' : 'text-muted-foreground/70';
+  return <span className={`text-[10px] font-mono ${color}`}>{count} / {max}</span>;
 }
 
 function SlugInput({ name, field, initialValue }: { name: string; field: FieldDef & { type: 'slug' }; initialValue: string }) {
@@ -314,6 +338,8 @@ export function CollectionForm({
   const fieldEntries = Object.entries(collection.fields);
   const localizedFields = fieldEntries.filter(([n, f]) => isLocalized(n, f, collection));
   const topFields = fieldEntries.filter(([n, f]) => !isLocalized(n, f, collection));
+  const seoFields = topFields.filter(([n]) => n.startsWith('seo'));
+  const settingsFields = topFields.filter(([n]) => !n.startsWith('seo'));
   const errorMsg = state && 'error' in state ? state.error : null;
   const saved = state && 'id' in state;
 
@@ -350,7 +376,7 @@ export function CollectionForm({
         </section>
       )}
 
-      {topFields.length > 0 && (
+      {settingsFields.length > 0 && (
         <section className="space-y-5">
           {localizedFields.length > 0 && (
             <div className="flex items-center gap-2">
@@ -358,7 +384,19 @@ export function CollectionForm({
               <div className="flex-1 border-t border-border" />
             </div>
           )}
-          {topFields.map(([name, field]) => (
+          {settingsFields.map(([name, field]) => (
+            <FieldInput key={name} name={name} field={field} initialValue={getInitialValue(name, field, collection, record)} />
+          ))}
+        </section>
+      )}
+
+      {seoFields.length > 0 && (
+        <section className="space-y-5">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">SEO</span>
+            <div className="flex-1 border-t border-border" />
+          </div>
+          {seoFields.map(([name, field]) => (
             <FieldInput key={name} name={name} field={field} initialValue={getInitialValue(name, field, collection, record)} />
           ))}
         </section>
