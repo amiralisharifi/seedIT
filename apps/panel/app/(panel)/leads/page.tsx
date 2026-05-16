@@ -1,7 +1,9 @@
+import Link from 'next/link';
 import { PageHeader } from '@/components/layout/page-header';
 import { queries } from '@seed-panel/db';
 
 export const metadata = { title: 'Leads' };
+export const revalidate = 0;
 
 /**
  * Leads — the heart of the CRM side. This stub renders a basic table so we
@@ -15,11 +17,14 @@ export default async function LeadsPage() {
     <>
       <PageHeader
         title="Leads"
-        description="Businesses scraped via Apify and ready for outreach."
+        description="Businesses scraped via Apify or added manually — ready for outreach."
         actions={
-          <button className="h-9 px-3 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90">
-            New scrape job
-          </button>
+          <Link
+            href="/leads/new"
+            className="h-9 px-3 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 flex items-center"
+          >
+            + New lead
+          </Link>
         }
       />
 
@@ -72,11 +77,15 @@ function EmptyState() {
     <div className="rounded-lg border border-dashed border-border p-12 text-center max-w-xl mx-auto">
       <h3 className="font-display font-semibold text-lg">No leads yet</h3>
       <p className="mt-1 text-sm text-muted-foreground">
-        Run your first scrape job to start collecting leads from Google Maps.
+        Add a business manually to get started — Apify scrape jobs will populate this
+        automatically once the n8n pipeline is wired up.
       </p>
-      <button className="mt-6 h-9 px-3 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90">
-        Start a scrape
-      </button>
+      <Link
+        href="/leads/new"
+        className="mt-6 inline-flex h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 items-center"
+      >
+        Add a lead manually
+      </Link>
     </div>
   );
 }

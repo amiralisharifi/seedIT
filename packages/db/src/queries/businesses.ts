@@ -115,6 +115,11 @@ export async function upsertLeadByPlaceId(data: NewBusiness): Promise<Business> 
   return inserted!;
 }
 
+export async function createLead(data: NewBusiness): Promise<Business> {
+  const [inserted] = await db.insert(businesses).values(data).returning();
+  return inserted!;
+}
+
 export async function updateLeadStatus(id: string, status: Business['status']) {
   const [updated] = await db
     .update(businesses)
