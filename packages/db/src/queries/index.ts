@@ -4,3 +4,4 @@ export * from './cms';
 export * from './settings';
 export * from './inquiries';
 export * from './demos';
+export * from './outreach';

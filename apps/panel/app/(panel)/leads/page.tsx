@@ -41,6 +41,7 @@ export default async function LeadsPage() {
                   <th className="text-left px-4 py-2.5 font-normal">Category</th>
                   <th className="text-left px-4 py-2.5 font-normal">Score</th>
                   <th className="text-left px-4 py-2.5 font-normal">Status</th>
+                  <th className="text-right px-4 py-2.5 font-normal"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -60,6 +61,14 @@ export default async function LeadsPage() {
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-muted text-foreground/80 font-mono">
                         {lead.status}
                       </span>
+                    </td>
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <Link
+                        href={`/outreach/compose?leadId=${lead.id}`}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Compose →
+                      </Link>
                     </td>
                   </tr>
                 ))}
