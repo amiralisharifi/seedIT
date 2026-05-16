@@ -8,6 +8,13 @@
       "when": 1778773770880,
       "tag": "0000_skinny_kree",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1778917787684,
+      "tag": "0001_tranquil_katie_power",
+      "breakpoints": true
     }
   ]
 }

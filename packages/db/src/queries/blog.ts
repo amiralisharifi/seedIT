@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull, lte } from 'drizzle-orm';
+import { and, desc, eq, isNull, lte, or } from 'drizzle-orm';
 import { db } from '../client';
 import { blogPosts } from '../schema';
 
@@ -10,10 +10,11 @@ export async function listPublishedPosts(limit = 20) {
       and(
         eq(blogPosts.status, 'published'),
         isNull(blogPosts.deletedAt),
-        lte(blogPosts.publishedAt, new Date()),
+        // NULL publishedAt = publish immediately; non-null = scheduled, only show when past
+        or(isNull(blogPosts.publishedAt), lte(blogPosts.publishedAt, new Date())),
       ),
     )
-    .orderBy(desc(blogPosts.publishedAt))
+    .orderBy(desc(blogPosts.createdAt))
     .limit(limit);
 }
 
