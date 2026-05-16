@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: 'Insights on web development, automation and design from the SEED IT studio in Dubai.',
 };
 
-export const revalidate = 3600;
+export const revalidate = 60;
 
 function getEn(content: Record<string, Record<string, unknown>>) {
   return (content?.en ?? {}) as Record<string, string>;
@@ -15,11 +15,12 @@ function getEn(content: Record<string, Record<string, unknown>>) {
 
 export default async function BlogPage() {
   let posts: Awaited<ReturnType<typeof queries.listPublishedPosts>> = [];
+  let dbError: string | null = null;
 
   try {
     posts = await queries.listPublishedPosts(50);
-  } catch {
-    // DB unavailable — show empty state
+  } catch (e) {
+    dbError = e instanceof Error ? e.message : String(e);
   }
 
   return (
@@ -52,7 +53,11 @@ export default async function BlogPage() {
             </h1>
           </div>
 
-          {posts.length === 0 ? (
+          {dbError ? (
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontFamily: 'monospace' }}>
+              DB error: {dbError}
+            </p>
+          ) : posts.length === 0 ? (
             <p style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>
               No posts yet — check back soon.
             </p>
