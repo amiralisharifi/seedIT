@@ -12,6 +12,7 @@
  */
 
 import { createBrowserClient, createServerClient } from '@supabase/ssr';
+import type { CookieOptions } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -40,14 +41,14 @@ export function createBrowserSupabase() {
 export async function createServerSupabase(
   cookieStore: () => Promise<{
     getAll: () => { name: string; value: string }[];
-    set?: (name: string, value: string, options?: Record<string, unknown>) => void;
+    set?: (name: string, value: string, options?: CookieOptions) => void;
   }>,
 ) {
   const store = await cookieStore();
   return createServerClient(url, anonKey, {
     cookies: {
       getAll: () => store.getAll(),
-      setAll: (cookies) => {
+      setAll: (cookies: { name: string; value: string; options: CookieOptions }[]) => {
         try {
           cookies.forEach(({ name, value, options }) => {
             store.set?.(name, value, options);

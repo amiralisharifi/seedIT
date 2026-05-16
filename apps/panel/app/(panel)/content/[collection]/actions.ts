@@ -62,6 +62,49 @@ function buildRecord(col: CollectionDefinition, fd: FormData): Record<string, un
 
 export type ActionResult = { error: string } | { id: string };
 
+function getPublicRevalidateUrl() {
+  const publicSiteUrl = process.env.PUBLIC_SITE_URL;
+  if (!publicSiteUrl) return null;
+
+  try {
+    return new URL('/api/revalidate', publicSiteUrl).toString();
+  } catch {
+    console.warn('PUBLIC_SITE_URL is not a valid URL; skipping public site revalidation.');
+    return null;
+  }
+}
+
+async function revalidatePublicContent(collectionSlug: string, slug?: unknown) {
+  if (collectionSlug !== 'blog_posts') return;
+
+  const revalidateUrl = getPublicRevalidateUrl();
+  const secret = process.env.REVALIDATE_SECRET;
+  if (!revalidateUrl || !secret) return;
+
+  const paths = ['/blog'];
+  if (typeof slug === 'string' && slug.length > 0) {
+    paths.push(`/blog/${slug}`);
+  }
+
+  await Promise.allSettled(
+    paths.map(async (path) => {
+      const response = await fetch(revalidateUrl, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-revalidate-secret': secret,
+        },
+        body: JSON.stringify({ path }),
+        signal: AbortSignal.timeout(5_000),
+      });
+
+      if (!response.ok) {
+        console.warn(`Public site revalidation failed for ${path}: ${response.status}`);
+      }
+    }),
+  );
+}
+
 export async function createRecord(
   collectionSlug: string,
   _prev: ActionResult | null,
@@ -87,6 +130,7 @@ export async function createRecord(
   }
 
   revalidatePath(`/content/${collectionSlug}`);
+  await revalidatePublicContent(collectionSlug, data.slug);
   redirect(`/content/${collectionSlug}/${inserted.id}`);
 }
 
@@ -110,5 +154,6 @@ export async function updateRecord(
 
   revalidatePath(`/content/${collectionSlug}`);
   revalidatePath(`/content/${collectionSlug}/${id}`);
+  await revalidatePublicContent(collectionSlug, data.slug);
   return { id };
 }

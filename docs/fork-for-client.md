@@ -123,6 +123,8 @@ NEXT_PUBLIC_SUPABASE_URL="..."
 NEXT_PUBLIC_SUPABASE_ANON_KEY="..."
 SUPABASE_SERVICE_ROLE_KEY="..."
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
+PUBLIC_SITE_URL="https://www.clientco.com"
+REVALIDATE_SECRET="$(openssl rand -hex 32)"
 
 # If they need n8n / Apify / AiSensy:
 N8N_SHARED_SECRET="$(openssl rand -hex 32)"
@@ -184,6 +186,9 @@ pnpm dlx vercel deploy --prod
 
 Once it's live, update `NEXT_PUBLIC_APP_URL` in Vercel env vars to the real
 URL, plus the Supabase Auth URL config (step 5) to use the production URL.
+Set `PUBLIC_SITE_URL` in the admin project to the public website domain, and
+use the same `REVALIDATE_SECRET` value in both the admin and public web
+projects so CMS saves can invalidate the public site's cached blog pages.
 
 ## Step 10 — Invite the client's user
 
