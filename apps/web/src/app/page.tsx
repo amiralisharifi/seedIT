@@ -1,8 +1,27 @@
 import LogoMark from '@/components/LogoMark';
 import LogoFull from '@/components/LogoFull';
 import ContactForm from '@/components/ContactForm';
+import { queries } from '@seed-panel/db';
 
-export default function HomePage() {
+export const revalidate = 60;
+
+export default async function HomePage() {
+  let contact: Record<string, unknown> = {};
+  try {
+    contact = await queries.getSettings('contact');
+  } catch {
+    // fall back to defaults
+  }
+
+  const phone = (contact.phone as string) || '+971 50 000 0000';
+  const whatsapp = (contact.whatsapp as string) || phone;
+  const email = (contact.supportEmail as string) || 'hello@seedit.ae';
+  const address = (contact.address as string) || 'Business Bay, Dubai';
+  // wa.me needs digits only, no leading +
+  const waNumber = whatsapp.replace(/\D/g, '');
+  const waLink = `https://wa.me/${waNumber}`;
+  const telLink = `tel:${phone.replace(/\s/g, '')}`;
+
   return (
     <>
       {/* =====================  NAV  ===================== */}
@@ -352,17 +371,17 @@ export default function HomePage() {
               <ul className="contact-list">
                 <li>
                   <span className="label">Email</span>
-                  <a href="mailto:hello@seedit.ae" className="value">
-                    hello@seedit.ae
+                  <a href={`mailto:${email}`} className="value">
+                    {email}
                   </a>
                 </li>
                 <li>
                   <span className="label">Phone</span>
-                  <a href="tel:+971500000000" className="value">
-                    +971 50 000 0000
+                  <a href={telLink} className="value">
+                    {phone}
                   </a>
                   <a
-                    href="https://wa.me/971500000000"
+                    href={waLink}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="value whatsapp-btn"
@@ -372,7 +391,7 @@ export default function HomePage() {
                 </li>
                 <li>
                   <span className="label">Studio</span>
-                  <span className="value">Business Bay, Dubai</span>
+                  <span className="value">{address}</span>
                 </li>
                 <li>
                   <span className="label">Hours</span>
@@ -431,13 +450,13 @@ export default function HomePage() {
               <h5>Reach us</h5>
               <ul>
                 <li>
-                  <a href="mailto:hello@seedit.ae">hello@seedit.ae</a>
+                  <a href={`mailto:${email}`}>{email}</a>
                 </li>
                 <li>
-                  <a href="tel:+971500000000">+971 50 000 0000</a>
+                  <a href={telLink}>{phone}</a>
                 </li>
                 <li>
-                  <a href="https://wa.me/971500000000" target="_blank" rel="noopener noreferrer">
+                  <a href={waLink} target="_blank" rel="noopener noreferrer">
                     WhatsApp
                   </a>
                 </li>
@@ -456,7 +475,7 @@ export default function HomePage() {
 
       {/* Floating WhatsApp */}
       <a
-        href="https://wa.me/971500000000"
+        href={waLink}
         target="_blank"
         rel="noopener noreferrer"
         className="wa-float"
