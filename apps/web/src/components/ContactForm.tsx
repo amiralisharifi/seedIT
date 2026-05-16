@@ -4,18 +4,32 @@ import { useState } from 'react';
 
 export default function ContactForm() {
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setError(null);
+    setLoading(true);
     const form = e.currentTarget;
     const data = Object.fromEntries(new FormData(form));
 
-    // TODO: wire up your form backend. Options:
-    //   1. Formspree → fetch('https://formspree.io/f/YOUR_ID', { method:'POST', body: new FormData(form) })
-    //   2. Panel API → POST to /api/n8n/lead-form when that endpoint is built
-    console.log('Lead:', data);
-
-    setSubmitted(true);
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const json = await res.json() as { error?: string };
+        throw new Error(json.error ?? 'Something went wrong');
+      }
+      setSubmitted(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -71,9 +85,13 @@ export default function ContactForm() {
             />
           </div>
 
-          <button type="submit" className="form-submit">
-            Send message
-            <span>→</span>
+          {error && (
+            <p style={{ color: '#ef4444', fontSize: '0.875rem', marginBottom: '0.5rem' }}>{error}</p>
+          )}
+
+          <button type="submit" className="form-submit" disabled={loading}>
+            {loading ? 'Sending…' : 'Send message'}
+            {!loading && <span>→</span>}
           </button>
 
           <p className="form-note">We reply within 1 business day · Your info stays private</p>

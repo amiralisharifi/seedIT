@@ -15,6 +15,13 @@
       "when": 1778917787684,
       "tag": "0001_tranquil_katie_power",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778932521586,
+      "tag": "0002_breezy_sebastian_shaw",
+      "breakpoints": true
     }
   ]
 }

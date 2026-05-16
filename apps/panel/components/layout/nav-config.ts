@@ -36,6 +36,7 @@ export function getNavSections(): NavSection[] {
     {
       title: 'CRM',
       items: [
+        { label: 'Inquiries', href: '/inquiries', icon: 'inbox' },
         { label: 'Leads', href: '/leads', icon: 'users' },
         { label: 'Demos', href: '/demos', icon: 'sparkles' },
         { label: 'Outreach', href: '/outreach', icon: 'send' },

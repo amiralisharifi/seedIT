@@ -583,6 +583,22 @@ export const teamMembers = pgTable('team_members', {
 });
 
 /* ============================================================================
+   CONTACT INQUIRIES — submissions from the public website contact form
+============================================================================ */
+
+export const contactInquiries = pgTable('contact_inquiries', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+  phone: text('phone'),
+  company: text('company'),
+  service: varchar('service', { length: 50 }),
+  message: text('message'),
+  isRead: boolean('is_read').notNull().default(false),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/* ============================================================================
    SITE SETTINGS — key/value store for runtime-editable config
 ============================================================================ */
 
