@@ -84,20 +84,21 @@ export default async function CollectionListPage({
                 {(rows as Record<string, unknown>[]).map((row, i) => (
                   <tr
                     key={(row.id as string) ?? i}
-                    className="hover:bg-muted/30 cursor-pointer"
-                    onClick={() => {
-                      window.location.href = `/content/${slug}/${row.id as string}`;
-                    }}
+                    className="hover:bg-muted/30"
                   >
                     {collection.listFields.map((field) => (
                       <td key={field} className="px-4 py-3">
-                        {renderCell(row[field])}
+                        <a
+                          href={`/content/${slug}/${row.id as string}`}
+                          className="block"
+                        >
+                          {renderCell(resolveField(row, field))}
+                        </a>
                       </td>
                     ))}
                     <td className="px-4 py-3 text-right">
                       <a
                         href={`/content/${slug}/${row.id as string}`}
-                        onClick={(e) => e.stopPropagation()}
                         className="text-xs text-muted-foreground hover:text-foreground"
                       >
                         Edit →
@@ -112,6 +113,13 @@ export default async function CollectionListPage({
       </div>
     </>
   );
+}
+
+function resolveField(row: Record<string, unknown>, field: string): unknown {
+  if (row[field] !== undefined && row[field] !== null) return row[field];
+  const content = row.content as Record<string, Record<string, unknown>> | undefined;
+  if (content?.en?.[field] !== undefined) return content.en[field];
+  return row[field];
 }
 
 function renderCell(value: unknown): React.ReactNode {
