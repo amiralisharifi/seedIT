@@ -24,8 +24,16 @@ export async function saveIntegrationsSettings(
     ahrefsVerification: (fd.get('ahrefsVerification') as string) || '',
   };
 
+  const seoDefaults = {
+    siteName: (fd.get('siteName') as string) || '',
+    defaultDescription: (fd.get('defaultDescription') as string) || '',
+    defaultOgImage: (fd.get('defaultOgImage') as string) || '',
+    twitterHandle: (fd.get('twitterHandle') as string) || '',
+  };
+
   try {
     await queries.saveSettings('analytics', analytics);
+    await queries.saveSettings('seo_defaults', seoDefaults);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     return { error: `Database error: ${msg}` };

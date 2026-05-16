@@ -1,17 +1,40 @@
 import type { Metadata, Viewport } from 'next';
 import { unstable_cache } from 'next/cache';
 import { queries } from '@seed-panel/db';
+import { SITE_URL } from '@/lib/site';
+import { getSeoDefaults } from '@/lib/seo';
 import './globals.css';
 
-export const metadata: Metadata = {
-  title: 'SEED IT · Web Development, Automation & Design Studio · Dubai, UAE',
-  description:
-    'SEED IT — an independent IT studio in Dubai building high-performance websites, business automations and design systems for ambitious companies across the UAE. We make IT on time.',
-  openGraph: {
-    title: 'SEED IT — We make IT on time',
-    description: 'Web development, automation & design for businesses in the UAE.',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const defaults = await getSeoDefaults();
+  const title = `${defaults.siteName} · Web Development, Automation & Design Studio · Dubai, UAE`;
+  const shortTitle = `${defaults.siteName} — We make IT on time`;
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: {
+      default: title,
+      template: `%s · ${defaults.siteName}`,
+    },
+    description: defaults.defaultDescription,
+    openGraph: {
+      type: 'website',
+      url: SITE_URL,
+      siteName: defaults.siteName,
+      title: shortTitle,
+      description: defaults.defaultDescription,
+      ...(defaults.defaultOgImage ? { images: [{ url: defaults.defaultOgImage }] } : {}),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: shortTitle,
+      description: defaults.defaultDescription,
+      ...(defaults.defaultOgImage ? { images: [defaults.defaultOgImage] } : {}),
+      ...(defaults.twitterHandle
+        ? { site: defaults.twitterHandle, creator: defaults.twitterHandle }
+        : {}),
+    },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: '#08090c',

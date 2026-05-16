@@ -2,6 +2,8 @@ import { queries } from '@seed-panel/db';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
+import { SITE_URL } from '@/lib/site';
+import { getSeoDefaults } from '@/lib/seo';
 
 export const revalidate = 3600;
 
@@ -17,10 +19,34 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const post = await queries.getPostBySlug(slug);
     if (!post) return {};
     const en = getEn(post.content);
+    const defaults = await getSeoDefaults();
+    const title = post.seoTitle ?? en.title ?? slug;
+    const description = post.seoDescription ?? en.excerpt ?? defaults.defaultDescription;
+    const url = `${SITE_URL}/blog/${slug}`;
+    const image = post.coverImageUrl || defaults.defaultOgImage;
     return {
-      title: post.seoTitle ?? en.title ?? slug,
-      description: post.seoDescription ?? en.excerpt ?? '',
+      title,
+      description,
       robots: post.seoNoindex ? 'noindex' : undefined,
+      alternates: { canonical: url },
+      openGraph: {
+        type: 'article',
+        url,
+        title,
+        description,
+        siteName: defaults.siteName,
+        ...(image ? { images: [{ url: image }] } : {}),
+        ...(post.publishedAt ? { publishedTime: post.publishedAt.toISOString() } : {}),
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        ...(image ? { images: [image] } : {}),
+        ...(defaults.twitterHandle
+          ? { site: defaults.twitterHandle, creator: defaults.twitterHandle }
+          : {}),
+      },
     };
   } catch {
     return {};

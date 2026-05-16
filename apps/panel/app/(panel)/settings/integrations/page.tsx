@@ -7,9 +7,11 @@ export const metadata = { title: 'Integrations' };
 
 export default async function IntegrationsPage() {
   let analytics: Record<string, unknown> = {};
+  let seoDefaults: Record<string, unknown> = {};
 
   try {
     analytics = await queries.getSettings('analytics');
+    seoDefaults = await queries.getSettings('seo_defaults');
   } catch {
     // DB unreachable — start with empty defaults
   }
@@ -18,10 +20,14 @@ export default async function IntegrationsPage() {
     <>
       <PageHeader
         title="Integrations"
-        description="Analytics scripts and webmaster verification tags injected into the public site."
+        description="Analytics, webmaster verification, and SEO defaults injected into the public site."
       />
       <div className="p-8 max-w-2xl">
-        <IntegrationsForm initial={analytics} action={saveIntegrationsSettings} />
+        <IntegrationsForm
+          initial={analytics}
+          seoDefaults={seoDefaults}
+          action={saveIntegrationsSettings}
+        />
       </div>
     </>
   );

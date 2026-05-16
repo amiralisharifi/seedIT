@@ -1,13 +1,39 @@
 import { queries } from '@seed-panel/db';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-
-export const metadata: Metadata = {
-  title: 'Blog · SEED IT',
-  description: 'Insights on web development, automation and design from the SEED IT studio in Dubai.',
-};
+import { SITE_URL } from '@/lib/site';
+import { getSeoDefaults } from '@/lib/seo';
 
 export const revalidate = 60;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const defaults = await getSeoDefaults();
+  const title = `Blog · ${defaults.siteName}`;
+  const description = `Insights on web development, automation and design from the ${defaults.siteName} studio in Dubai.`;
+  const url = `${SITE_URL}/blog`;
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: 'website',
+      url,
+      title,
+      description,
+      siteName: defaults.siteName,
+      ...(defaults.defaultOgImage ? { images: [{ url: defaults.defaultOgImage }] } : {}),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      ...(defaults.defaultOgImage ? { images: [defaults.defaultOgImage] } : {}),
+      ...(defaults.twitterHandle
+        ? { site: defaults.twitterHandle, creator: defaults.twitterHandle }
+        : {}),
+    },
+  };
+}
 
 function getEn(content: Record<string, Record<string, unknown>>) {
   return (content?.en ?? {}) as Record<string, string>;

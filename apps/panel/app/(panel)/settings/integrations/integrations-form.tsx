@@ -61,9 +61,11 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 
 export function IntegrationsForm({
   initial,
+  seoDefaults,
   action,
 }: {
   initial: Record<string, unknown>;
+  seoDefaults: Record<string, unknown>;
   action: (prev: IntegrationsResult | null, fd: FormData) => Promise<IntegrationsResult>;
 }) {
   const [state, formAction, pending] = useActionState(action, null);
@@ -72,6 +74,7 @@ export function IntegrationsForm({
 
   const str = (key: string) => (initial[key] as string) || '';
   const bool = (key: string) => !!initial[key];
+  const seo = (key: string) => (seoDefaults[key] as string) || '';
 
   return (
     <form action={formAction} className="space-y-6">
@@ -135,6 +138,37 @@ export function IntegrationsForm({
         <Field label="Pinterest" name="pinterestVerification" value={str('pinterestVerification')} placeholder="verification token" />
         <Field label="Facebook domain" name="facebookDomainVerification" value={str('facebookDomainVerification')} placeholder="verification token" />
         <Field label="Ahrefs" name="ahrefsVerification" value={str('ahrefsVerification')} placeholder="verification token" />
+      </Card>
+
+      <Card title="SEO defaults">
+        <Field
+          label="Site name"
+          name="siteName"
+          value={seo('siteName')}
+          placeholder="SEED IT"
+          hint="Used in OG site_name and the page title template"
+        />
+        <Field
+          label="Default description"
+          name="defaultDescription"
+          value={seo('defaultDescription')}
+          placeholder="Web development, automation & design from Dubai."
+          hint="Falls back to this when a page has no meta description"
+        />
+        <Field
+          label="Default OG image URL"
+          name="defaultOgImage"
+          value={seo('defaultOgImage')}
+          placeholder="https://seedit.ae/og.png"
+          hint="1200×630 recommended. Used when a blog post has no cover image."
+        />
+        <Field
+          label="Twitter / X handle"
+          name="twitterHandle"
+          value={seo('twitterHandle')}
+          placeholder="@seedit_ae"
+          hint="Include the @. Sets twitter:site and twitter:creator."
+        />
       </Card>
 
       <div>
