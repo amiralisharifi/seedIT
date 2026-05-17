@@ -14,7 +14,30 @@ const STATUS_BADGE: Record<string, string> = {
   succeeded: 'bg-emerald-100 text-emerald-800',
   failed: 'bg-red-100 text-red-800',
   timed_out: 'bg-amber-100 text-amber-800',
+  queue_stuck: 'bg-amber-100 text-amber-800',
 };
+
+/** Find an Apify run URL inside an error message and render it as a link. */
+function linkifyRunUrl(text: string): React.ReactNode {
+  const match = text.match(/(https:\/\/console\.apify\.com\/[^\s]+)/);
+  const url = match?.[1];
+  if (!url) return text;
+  const [before, after] = text.split(url);
+  return (
+    <>
+      {before}
+      <a
+        href={url}
+        target="_blank"
+        rel="noreferrer"
+        className="underline text-primary"
+      >
+        Open in Apify ↗
+      </a>
+      {after}
+    </>
+  );
+}
 
 export default async function ScrapePage() {
   const apifyConfigured = !!process.env.APIFY_TOKEN;
@@ -69,8 +92,8 @@ export default async function ScrapePage() {
                           {(j.queries as unknown as string[]).join(' · ')}
                         </div>
                         {j.errorMessage && (
-                          <div className="text-xs text-red-600 mt-1 line-clamp-2">
-                            {j.errorMessage}
+                          <div className="text-xs text-red-600 mt-1">
+                            {linkifyRunUrl(j.errorMessage)}
                           </div>
                         )}
                       </td>

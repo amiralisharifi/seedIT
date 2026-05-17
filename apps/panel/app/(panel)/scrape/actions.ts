@@ -150,7 +150,9 @@ export async function runScrape(
         skipClosedPlaces: true,
       },
       waitSeconds: 280,
-      memoryMbytes: 1024,
+      // No memoryMbytes — let the actor use its default (4096 MB for compass).
+      // Passing a value lower than the actor's minimum causes the run to stay
+      // queued in READY forever.
     });
 
     await queries.updateScrapeJob(job.id, {
@@ -159,15 +161,24 @@ export async function runScrape(
     });
 
     if (run.status !== 'SUCCEEDED') {
+      const consoleUrl = `https://console.apify.com/actors/runs/${run.id}`;
+      let hint: string;
+      if (run.status === 'READY') {
+        hint =
+          'Run was queued but never started — usually concurrency limit (a previous run is still using your only slot) or insufficient memory available on the plan. Abort stuck runs in the Apify console and retry.';
+      } else if (run.status === 'RUNNING') {
+        hint = 'Run is still going. Try fewer results per query (e.g. 20) for faster turnaround.';
+      } else {
+        hint = `Run finished with status ${run.status} — open the console for details.`;
+      }
+      const errMsg = `${hint} Run: ${consoleUrl}`;
       await queries.updateScrapeJob(job.id, {
-        status: 'timed_out',
-        errorMessage: `Apify run still ${run.status} after 280s — check run ${run.id} in Apify console.`,
+        status: run.status === 'READY' ? 'queue_stuck' : 'timed_out',
+        errorMessage: errMsg,
         finishedAt: new Date(),
       });
       revalidatePath('/scrape');
-      return {
-        error: `Scrape didn't finish in 280s (status: ${run.status}). Reduce results per query and try again.`,
-      };
+      return { error: errMsg };
     }
 
     dataset = (await apify.getApifyDataset<ApifyPlace>(run.defaultDatasetId, {
