@@ -6,3 +6,4 @@ export * from './inquiries';
 export * from './demos';
 export * from './outreach';
 export * from './conversations';
+export * from './scrape';
