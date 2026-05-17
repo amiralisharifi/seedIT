@@ -10,6 +10,11 @@ export async function listScrapeJobs(limit = 50) {
     .limit(limit);
 }
 
+export async function getScrapeJobById(id: string) {
+  const [row] = await db.select().from(scrapeJobs).where(eq(scrapeJobs.id, id)).limit(1);
+  return row ?? null;
+}
+
 export async function createScrapeJob(input: {
   queries: string[];
   targetCategory: NewBusiness['category'];
@@ -39,7 +44,7 @@ export async function updateScrapeJob(
     apifyDatasetId?: string;
     resultsCount?: number;
     newLeadsCount?: number;
-    errorMessage?: string;
+    errorMessage?: string | null;
     costUsd?: number;
     startedAt?: Date;
     finishedAt?: Date;

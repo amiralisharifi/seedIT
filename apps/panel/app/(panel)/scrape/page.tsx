@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { PageHeader } from '@/components/layout/page-header';
 import { queries } from '@seed-panel/db';
 import { ScrapeForm } from './scrape-form';
+import { RecheckButton } from './recheck-button';
 
 export const metadata = { title: 'Scrape' };
 export const revalidate = 0;
@@ -15,6 +16,7 @@ const STATUS_BADGE: Record<string, string> = {
   failed: 'bg-red-100 text-red-800',
   timed_out: 'bg-amber-100 text-amber-800',
   queue_stuck: 'bg-amber-100 text-amber-800',
+  awaiting_apify: 'bg-amber-100 text-amber-800',
 };
 
 /** Find an Apify run URL inside an error message and render it as a link. */
@@ -82,6 +84,7 @@ export default async function ScrapePage() {
                     <th className="text-right px-4 py-2.5 font-normal">Results</th>
                     <th className="text-right px-4 py-2.5 font-normal">New leads</th>
                     <th className="text-left px-4 py-2.5 font-normal">When</th>
+                    <th className="text-right px-4 py-2.5 font-normal"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -121,6 +124,11 @@ export default async function ScrapePage() {
                           hour: '2-digit',
                           minute: '2-digit',
                         })}
+                      </td>
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                        {j.apifyRunId &&
+                          j.status !== 'succeeded' &&
+                          j.status !== 'queued' && <RecheckButton jobId={j.id} />}
                       </td>
                     </tr>
                   ))}

@@ -162,23 +162,17 @@ export async function runScrape(
 
     if (run.status !== 'SUCCEEDED') {
       const consoleUrl = `https://console.apify.com/actors/runs/${run.id}`;
-      let hint: string;
-      if (run.status === 'READY') {
-        hint =
-          'Run was queued but never started — usually concurrency limit (a previous run is still using your only slot) or insufficient memory available on the plan. Abort stuck runs in the Apify console and retry.';
-      } else if (run.status === 'RUNNING') {
-        hint = 'Run is still going. Try fewer results per query (e.g. 20) for faster turnaround.';
-      } else {
-        hint = `Run finished with status ${run.status} — open the console for details.`;
-      }
-      const errMsg = `${hint} Run: ${consoleUrl}`;
+      const hint =
+        `Apify hadn't finished within our 280s wait (current status: ${run.status}). ` +
+        `The run may still be going — once it succeeds, click "Re-check & import" on this ` +
+        `job row to pull the results in. Run: ${consoleUrl}`;
       await queries.updateScrapeJob(job.id, {
-        status: run.status === 'READY' ? 'queue_stuck' : 'timed_out',
-        errorMessage: errMsg,
+        status: 'awaiting_apify',
+        errorMessage: hint,
         finishedAt: new Date(),
       });
       revalidatePath('/scrape');
-      return { error: errMsg };
+      return { error: hint };
     }
 
     dataset = (await apify.getApifyDataset<ApifyPlace>(run.defaultDatasetId, {
@@ -221,4 +215,84 @@ export async function runScrape(
   revalidatePath('/dashboard');
 
   return { ok: true, jobId: job.id, resultsCount: dataset.length, newLeadsCount };
+}
+
+/**
+ * Re-poll Apify for an existing job and import its dataset if the run has
+ * finished since our synchronous wait timed out. Idempotent — safe to call
+ * repeatedly. Used by the "Re-check & import" button on a stuck job row.
+ */
+export async function recheckScrape(jobId: string): Promise<ScrapeResult> {
+  if (!process.env.APIFY_TOKEN) {
+    return { error: 'APIFY_TOKEN is not set on the server.' };
+  }
+
+  const job = await queries.getScrapeJobById(jobId);
+  if (!job) return { error: 'Scrape job not found.' };
+  if (!job.apifyRunId) return { error: 'This job has no Apify run id to re-check.' };
+
+  let run;
+  try {
+    run = await apify.getApifyRun(job.apifyRunId);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { error: `Could not fetch Apify run: ${msg}` };
+  }
+
+  if (run.status !== 'SUCCEEDED') {
+    const consoleUrl = `https://console.apify.com/actors/runs/${run.id}`;
+    await queries.updateScrapeJob(jobId, {
+      status: run.status === 'RUNNING' ? 'running' : 'awaiting_apify',
+      errorMessage: `Run is still ${run.status}. Try again in a minute. Run: ${consoleUrl}`,
+    });
+    revalidatePath('/scrape');
+    return { error: `Run is still ${run.status} — try again in a minute.` };
+  }
+
+  // Run is SUCCEEDED — pull dataset and import
+  // The job row should already have the original category/emirate context.
+  let dataset: ApifyPlace[];
+  try {
+    dataset = (await apify.getApifyDataset<ApifyPlace>(run.defaultDatasetId, {
+      limit: 1000,
+    })) as ApifyPlace[];
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { error: `Could not fetch Apify dataset: ${msg}` };
+  }
+
+  const category = job.targetCategory ?? 'salon_ladies';
+  const emirate = job.targetEmirate ?? 'dubai';
+
+  let newLeadsCount = 0;
+  for (const place of dataset) {
+    const data = placeToBusiness(place, {
+      category: category as Category,
+      emirate: emirate as Emirate,
+      areaZone: undefined,
+    });
+    if (!data) continue;
+    try {
+      const existing = await queries.getLeadByPlaceId(data.placeId!);
+      await queries.upsertLeadByPlaceId(data);
+      if (!existing) newLeadsCount++;
+    } catch (e) {
+      console.error('upsert failed for placeId', data.placeId, e);
+    }
+  }
+
+  await queries.updateScrapeJob(jobId, {
+    status: 'succeeded',
+    resultsCount: dataset.length,
+    newLeadsCount,
+    apifyDatasetId: run.defaultDatasetId,
+    finishedAt: new Date(),
+    errorMessage: null as unknown as string, // clear it
+  });
+
+  revalidatePath('/scrape');
+  revalidatePath('/leads');
+  revalidatePath('/dashboard');
+
+  return { ok: true, jobId, resultsCount: dataset.length, newLeadsCount };
 }
