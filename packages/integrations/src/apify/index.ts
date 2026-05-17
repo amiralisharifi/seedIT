@@ -35,10 +35,16 @@ export interface ApifyRun {
   };
 }
 
+/** Apify accepts both `user/actor` and `user~actor`, but URL paths only work
+ *  with the tilde form (slashes are interpreted as path segments). */
+function normalizeActorId(id: string): string {
+  return id.replace('/', '~');
+}
+
 export async function startApifyRun(params: RunActorParams): Promise<ApifyRun> {
   if (!apiKey) throw new Error('APIFY_TOKEN is not set');
 
-  const url = new URL(`${API_BASE}/acts/${params.actorId}/runs`);
+  const url = new URL(`${API_BASE}/acts/${normalizeActorId(params.actorId)}/runs`);
   if (params.waitSeconds) url.searchParams.set('waitForFinish', String(params.waitSeconds));
   if (params.memoryMbytes) url.searchParams.set('memory', String(params.memoryMbytes));
 
