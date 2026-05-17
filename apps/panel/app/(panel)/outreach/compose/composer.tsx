@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { markOutreachSent, type SentResult } from './actions';
+import { markOutreachSent, sendViaAiSensy, type SentResult } from './actions';
 
 type LeadOption = {
   id: string;
@@ -21,6 +21,7 @@ type TemplateOption = {
   channel: 'whatsapp' | 'email' | 'instagram_dm' | 'phone_call' | 'in_person';
   bodyEn: string | null;
   bodyAr: string | null;
+  providerTemplateName: string | null;
 };
 
 type DemoInfo = { id: string; slug: string } | null;
@@ -46,6 +47,7 @@ export function Composer({
   templates,
   siteUrl,
   defaultSenderName,
+  aisensyConfigured,
   initialLeadId,
   initialTemplateId,
   initialDemo,
@@ -54,6 +56,7 @@ export function Composer({
   templates: TemplateOption[];
   siteUrl: string;
   defaultSenderName: string;
+  aisensyConfigured: boolean;
   initialLeadId?: string;
   initialTemplateId?: string;
   initialDemo?: DemoInfo;
@@ -110,14 +113,26 @@ export function Composer({
     ? `https://wa.me/${waDigits}?text=${encodeURIComponent(renderedBody)}`
     : '';
 
+  const canSendBase = !!lead && renderedBody.trim().length > 0;
+
   const [sendState, sendAction, sendPending] = useActionState(markOutreachSent, null);
+  const [aisensyState, aisensyAction, aisensyPending] = useActionState(sendViaAiSensy, null);
 
   const sendError = sendState && 'error' in sendState ? sendState.error : null;
   const sendOk = sendState && 'ok' in sendState ? sendState : null;
+  const aisensyError = aisensyState && 'error' in aisensyState ? aisensyState.error : null;
+  const aisensyOk = aisensyState && 'ok' in aisensyState ? aisensyState : null;
 
   useEffect(() => {
     if (sendOk) router.refresh();
   }, [sendOk, router]);
+
+  useEffect(() => {
+    if (aisensyOk) router.refresh();
+  }, [aisensyOk, router]);
+
+  const canSendViaAiSensy =
+    canSendBase && aisensyConfigured && !!template?.providerTemplateName;
 
   async function handleCopy() {
     try {
@@ -128,8 +143,6 @@ export function Composer({
       /* clipboard blocked — ignore */
     }
   }
-
-  const canSend = !!lead && renderedBody.trim().length > 0;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -276,19 +289,62 @@ export function Composer({
             ✓ Logged as sent. <a href="/outreach" className="underline">View history</a>
           </div>
         )}
+        {aisensyError && (
+          <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            AiSensy: {aisensyError}
+          </div>
+        )}
+        {aisensyOk && (
+          <div className="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+            ✓ Sent via AiSensy + logged. <a href="/outreach" className="underline">View history</a>
+          </div>
+        )}
+
+        {/* AiSensy one-click send (when configured) */}
+        {aisensyConfigured && (
+          <form action={aisensyAction}>
+            <input type="hidden" name="businessId" value={lead?.id ?? ''} />
+            <input type="hidden" name="templateId" value={template?.id ?? ''} />
+            <input type="hidden" name="locale" value={locale} />
+            <input type="hidden" name="senderName" value={senderName} />
+            <button
+              type="submit"
+              disabled={!canSendViaAiSensy || aisensyPending}
+              className={
+                'w-full h-11 px-4 rounded-md text-sm font-semibold flex items-center justify-center gap-2 ' +
+                (canSendViaAiSensy
+                  ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                  : 'bg-muted text-muted-foreground cursor-not-allowed')
+              }
+              title={
+                !template?.providerTemplateName && template
+                  ? `Template "${template.name}" has no providerTemplateName — can't send via AiSensy`
+                  : undefined
+              }
+            >
+              {aisensyPending ? 'Sending…' : '🚀 Send via AiSensy + log'}
+            </button>
+            {template && !template.providerTemplateName && (
+              <p className="mt-1 text-xs text-amber-700">
+                This template has no <code>providerTemplateName</code> — add the Meta-approved
+                template name in the <code>message_templates</code> row to enable AiSensy send.
+              </p>
+            )}
+          </form>
+        )}
 
         <div className="flex flex-wrap gap-2">
           <a
-            href={canSend && waDigits ? waLink : undefined}
+            href={canSendBase && waDigits ? waLink : undefined}
             target="_blank"
             rel="noreferrer"
             onClick={(e) => {
-              if (!canSend || !waDigits) e.preventDefault();
+              if (!canSendBase || !waDigits) e.preventDefault();
             }}
-            aria-disabled={!canSend || !waDigits}
+            aria-disabled={!canSendBase || !waDigits}
             className={
               'h-10 px-4 rounded-md text-sm font-medium flex items-center gap-2 ' +
-              (canSend && waDigits
+              (canSendBase && waDigits
                 ? 'bg-emerald-600 text-white hover:bg-emerald-700'
                 : 'bg-muted text-muted-foreground cursor-not-allowed')
             }
@@ -299,7 +355,7 @@ export function Composer({
           <button
             type="button"
             onClick={handleCopy}
-            disabled={!canSend}
+            disabled={!canSendBase}
             className="h-10 px-4 rounded-md border border-border text-sm font-medium hover:bg-muted disabled:opacity-50"
           >
             {copied ? '✓ Copied' : 'Copy message'}
@@ -315,7 +371,7 @@ export function Composer({
           <input type="hidden" name="renderedBody" value={renderedBody} />
           <button
             type="submit"
-            disabled={!canSend || sendPending}
+            disabled={!canSendBase || sendPending}
             className="w-full h-10 px-4 rounded-md border border-primary text-primary text-sm font-medium hover:bg-primary/5 disabled:opacity-50"
           >
             {sendPending ? 'Logging…' : 'Mark as sent (log to history)'}
@@ -323,9 +379,19 @@ export function Composer({
         </form>
 
         <p className="text-xs text-muted-foreground">
-          Two-step send: click <strong>Open WhatsApp Web</strong>, hit send on your phone or browser,
-          then come back here and click <strong>Mark as sent</strong> to log it for dashboard metrics
-          and the conversation timeline.
+          {aisensyConfigured ? (
+            <>
+              <strong>One-click send:</strong> <em>Send via AiSensy</em> uses the approved Meta
+              template and logs immediately. <strong>Manual send:</strong> <em>Open WhatsApp Web</em>,
+              hit send, then <em>Mark as sent</em>.
+            </>
+          ) : (
+            <>
+              Two-step send: click <strong>Open WhatsApp Web</strong>, hit send on your phone or
+              browser, then come back here and click <strong>Mark as sent</strong>. Set
+              <code> AISENSY_API_KEY</code> in env to unlock one-click sends.
+            </>
+          )}
         </p>
       </div>
     </div>

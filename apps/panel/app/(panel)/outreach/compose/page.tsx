@@ -50,9 +50,11 @@ export default async function ComposeOutreachPage({
             channel: t.channel,
             bodyEn: t.bodyEn,
             bodyAr: t.bodyAr,
+            providerTemplateName: t.providerTemplateName,
           }))}
           siteUrl={SITE_URL}
           defaultSenderName={defaultSenderName}
+          aisensyConfigured={!!process.env.AISENSY_API_KEY}
           initialLeadId={params.leadId}
           initialTemplateId={params.templateId}
           initialDemo={initialLead?.demo ?? null}
