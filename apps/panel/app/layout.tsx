@@ -15,10 +15,7 @@ export const metadata: Metadata = {
   description: `${brand.name} admin panel — manage leads, demos, content, and outreach.`,
   // Admin panels should never be indexed
   robots: { index: false, follow: false },
-  icons: {
-    icon: brand.favicon,
-    apple: brand.logo.mark,
-  },
+  // No `icons` field — Next.js auto-detects /app/icon.png + /app/apple-icon.png
 };
 
 export const viewport: Viewport = {
