@@ -3,6 +3,22 @@
 import { useActionState, useEffect, useRef, useState } from 'react';
 import type { CollectionDefinition, FieldDef } from '@seed-panel/core';
 import type { ActionResult } from '@/app/(panel)/content/[collection]/actions';
+import { SerpPreview } from './serp-preview';
+
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://seedit.ae').replace(/\/$/, '');
+
+/** Maps a collection slug to the public URL prefix where its posts live. */
+const PUBLIC_PATH_PREFIX: Record<string, string> = {
+  blog_posts: '/blog/',
+  case_studies: '/work/',
+  services: '/services/',
+};
+const SLUG_FIELD_NAME: Record<string, string> = {
+  blog_posts: 'slug',
+  case_studies: 'slug',
+  services: 'slug',
+  pages: 'path',
+};
 
 const TOP_LEVEL_TYPES = new Set([
   'slug', 'select', 'boolean', 'datetime', 'date',
@@ -399,6 +415,26 @@ export function CollectionForm({
           {seoFields.map(([name, field]) => (
             <FieldInput key={name} name={name} field={field} initialValue={getInitialValue(name, field, collection, record)} />
           ))}
+          {seoFields.some(([n]) => n === 'seoTitle') &&
+            seoFields.some(([n]) => n === 'seoDescription') && (
+              <div className="pt-2">
+                <div className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-2">
+                  Google preview
+                </div>
+                <SerpPreview
+                  titleFieldId="field-seoTitle"
+                  descriptionFieldId="field-seoDescription"
+                  slugFieldId={`field-${SLUG_FIELD_NAME[collection.slug] ?? 'slug'}`}
+                  siteUrl={SITE_URL}
+                  pathPrefix={PUBLIC_PATH_PREFIX[collection.slug] ?? `/${collection.slug}/`}
+                  fallbackTitle={
+                    fieldEntries.find(([n]) => n === 'title')?.[0]
+                      ? getInitialValue('title', collection.fields.title!, collection, record)
+                      : undefined
+                  }
+                />
+              </div>
+            )}
         </section>
       )}
 

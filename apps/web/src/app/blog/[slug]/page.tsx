@@ -80,8 +80,37 @@ export default async function BlogPostPage({ params }: Props) {
       })
     : '';
 
+  const defaults = await getSeoDefaults();
+  const canonicalUrl = `${SITE_URL}/blog/${slug}`;
+  const articleImage = post.coverImageUrl || defaults.defaultOgImage || undefined;
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: title,
+    description: excerpt || post.seoDescription || defaults.defaultDescription,
+    ...(articleImage ? { image: [articleImage] } : {}),
+    datePublished: post.publishedAt
+      ? new Date(post.publishedAt).toISOString()
+      : new Date(post.createdAt).toISOString(),
+    dateModified: new Date(post.updatedAt).toISOString(),
+    mainEntityOfPage: { '@type': 'WebPage', '@id': canonicalUrl },
+    publisher: {
+      '@type': 'Organization',
+      name: defaults.siteName,
+      ...(defaults.defaultOgImage
+        ? { logo: { '@type': 'ImageObject', url: defaults.defaultOgImage } }
+        : {}),
+    },
+    author: { '@type': 'Organization', name: defaults.siteName },
+    ...(post.tags.length > 0 ? { keywords: post.tags.join(', ') } : {}),
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <nav className="nav scrolled" id="nav">
         <div className="container nav-inner">
           <a href="/" className="logo" aria-label="SEED IT — home">
@@ -159,7 +188,7 @@ export default async function BlogPostPage({ params }: Props) {
             <div style={{ marginBottom: '2.5rem', borderRadius: '12px', overflow: 'hidden' }}>
               <Image
                 src={post.coverImageUrl}
-                alt={title}
+                alt={post.coverImageAlt ?? title}
                 width={720}
                 height={405}
                 style={{ width: '100%', height: 'auto', display: 'block' }}

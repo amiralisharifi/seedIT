@@ -493,6 +493,7 @@ export const blogPosts = pgTable(
     // Localized content lives in jsonb. Each locale has its own copy of fields.
     content: jsonb('content').$type<LocalizedContent>().notNull().default({}),
     coverImageUrl: text('cover_image_url'),
+    coverImageAlt: text('cover_image_alt'),
     tags: jsonb('tags').$type<string[]>().notNull().default([]),
     status: contentStatusEnum('status').notNull().default('draft'),
     authorId: uuid('author_id').references(() => users.id, { onDelete: 'set null' }),

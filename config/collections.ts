@@ -48,6 +48,10 @@ export const collections = [
       slug: fields.slug({ source: 'title', required: true, unique: true }),
       excerpt: fields.textarea({ max: 300, helpText: 'Shown in lists and on social previews' }),
       coverImage: fields.image({ aspectRatio: '16:9' }),
+      coverImageAlt: fields.text({
+        max: 125,
+        helpText: 'Describe the image for screen readers + Google image search. Becomes <img alt> on the public post.',
+      }),
       body: fields.richText({ required: true }),
       author: fields.reference({ to: 'users', required: true }),
       tags: fields.tags(),
