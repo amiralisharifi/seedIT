@@ -49,7 +49,8 @@ const getAnalytics = unstable_cache(
     }
   },
   ['analytics-settings'],
-  { revalidate: 3600 },
+  // 60s soft TTL + tag so the panel can flush it instantly on save
+  { revalidate: 60, tags: ['settings-analytics'] },
 );
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

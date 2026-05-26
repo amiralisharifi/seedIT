@@ -5,6 +5,28 @@ import { queries } from '@seed-panel/db';
 
 export type IntegrationsResult = { error: string } | { ok: true };
 
+/** Tell the public site to drop a tagged unstable_cache entry right now. */
+async function flushWebTag(tag: string): Promise<void> {
+  const publicSiteUrl = process.env.PUBLIC_SITE_URL;
+  const secret = process.env.REVALIDATE_SECRET;
+  if (!publicSiteUrl || !secret) return; // silently no-op when not configured
+
+  try {
+    const url = new URL('/api/revalidate', publicSiteUrl).toString();
+    await fetch(url, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-revalidate-secret': secret,
+      },
+      body: JSON.stringify({ tag }),
+      signal: AbortSignal.timeout(5_000),
+    });
+  } catch {
+    // Non-fatal — settings still save, just won't appear until the 60s TTL.
+  }
+}
+
 export async function saveIntegrationsSettings(
   _prev: IntegrationsResult | null,
   fd: FormData,
@@ -40,5 +62,11 @@ export async function saveIntegrationsSettings(
   }
 
   revalidatePath('/settings/integrations');
+
+  // Public site holds these in unstable_cache — tell it to drop them now
+  // so the new GTM / GA4 / SEO defaults show up on the next page request
+  // instead of waiting for the 60s soft TTL.
+  await Promise.all([flushWebTag('settings-analytics'), flushWebTag('settings-seo')]);
+
   return { ok: true };
 }

@@ -31,5 +31,5 @@ export const getSeoDefaults = unstable_cache(
     }
   },
   ['seo-defaults'],
-  { revalidate: 3600 },
+  { revalidate: 60, tags: ['settings-seo'] },
 );
