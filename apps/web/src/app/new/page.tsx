@@ -19,7 +19,12 @@ export default function LandingPreviewPage() {
     <>
       {/* z 60 — laptop intro (scroll-scrubbed video) */}
       <div className="intro-stage" id="intro-stage">
-        <video id="intro-video" muted playsInline preload="auto">
+        {/*
+          preload="metadata" pulls only the first frame + container info
+          (~100 KB) instead of the full 12 MB. The browser streams the
+          rest as scroll-scrubbing demands it.
+        */}
+        <video id="intro-video" muted playsInline preload="metadata">
           <source src="/landing/intro.mp4" type="video/mp4" />
         </video>
         <div className="iv-vignette" />

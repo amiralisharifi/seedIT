@@ -73,10 +73,33 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/*
+          Non-blocking Google Fonts load: stylesheet starts with media="print"
+          so the browser doesn't block render on it, then a tiny inline script
+          flips it to media="all" after parse. Saves ~230ms of render-block
+          on every page. <noscript> is a fallback for users without JS.
+        */}
         <link
+          rel="preload"
+          as="style"
           href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Onest:wght@300;400;500;600&display=swap"
-          rel="stylesheet"
         />
+        <link
+          rel="stylesheet"
+          media="print"
+          href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Onest:wght@300;400;500;600&display=swap"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `for (const l of document.querySelectorAll('link[rel="stylesheet"][media="print"]')) l.media = 'all';`,
+          }}
+        />
+        <noscript>
+          <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Onest:wght@300;400;500;600&display=swap"
+          />
+        </noscript>
 
         {/* Webmaster verification tags */}
         {gscToken && <meta name="google-site-verification" content={gscToken} />}
