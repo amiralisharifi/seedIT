@@ -25,6 +25,21 @@
 
   const giant = document.getElementById('giant');
 
+  // Smooth "skip the laptop intro" jump used by the top "click here" pill.
+  window.__scrollToHero = function(){
+    const vh = window.innerHeight;
+    const introEnd = (window.__introHeight ? window.__introHeight() : 4 * vh);
+    // land a little inside the hero region so it reads as fully arrived
+    const target = introEnd + 4;
+    if (lenis) {
+      try { lenis.start(); } catch(e){}
+      lenis.scrollTo(target, { duration: 1.6, force: true,
+        easing: (t)=>1-Math.pow(1-t,3) });
+    } else {
+      window.scrollTo({ top: target, behavior: 'smooth' });
+    }
+  };
+
   // ── Mandatory hero stop ───────────────────────────────────────────────
   // When the user first crosses out of the intro into the hero region we
   // hard-lock the scroll for HERO_LOCK_MS so they can't accidentally fly

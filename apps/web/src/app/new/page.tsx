@@ -3,32 +3,94 @@ import Script from 'next/script';
 import './landing.css';
 
 export const metadata: Metadata = {
-  title: 'SEED IT — vibe coding studio',
+  title: 'SEEDIT — software UAE businesses actually use',
   description:
-    'We help founders and makers turn ideas into real products — fast, clean, and built to last. Website development, vibe coding & automation.',
+    'SEEDIT (Fertile Seed IT Solutions) builds dashboards, AI tools, and automation that runs in the background. Dubai-built, shipped to the world.',
   robots: { index: false, follow: false }, // staging — don't compete with /
 };
 
 const HERO_COPY =
-  'We help founders and makers turn ideas into real products — fast, clean, and built to last. Plant the seed, watch it grow.';
+  'We build the software UAE businesses actually use — marketing dashboards, AI tools, and automation that runs in the background. Dubai-built, shipped to the world.';
+
+const STACK_BIO =
+  'Fertile Seed IT Solutions — a Dubai studio building real, shipping software for UAE businesses. Below are the platforms we’ve built, and the capabilities behind them.';
+
+const CTA_COPY =
+  'Tell us what you’re building. We design, build, and ship real software for UAE businesses — dashboards, AI tools, automation, and more.';
 
 const CONTACT_EMAIL = 'hello@seedit.ae';
+const SITE = 'https://seedit.ae';
+
+const TAGS = [
+  'FULL-STACK',
+  'AI AUTOMATION',
+  'MARKETING ANALYTICS',
+  'INTEGRATIONS',
+  'BRAND & DESIGN',
+];
+
+const TECH = [
+  'REACT',
+  'NEXT.JS',
+  'FASTAPI',
+  'SUPABASE',
+  'POSTGRES',
+  'VERCEL',
+  'RAILWAY',
+  'AWS',
+  'STRIPE',
+  'N8N',
+  'WHATSAPP API',
+];
+
+const NAV_WAVE_HEIGHTS = ['60%', '90%', '75%', '100%', '65%', '85%', '55%'];
+const NAV_WAVE_DELAYS = ['0s', '.12s', '.24s', '.36s', '.48s', '.6s', '.72s'];
 
 export default function LandingPreviewPage() {
   return (
     <>
+      {/*
+        Inter is added on this page only — root layout already loads
+        JetBrains Mono. Rendered here so it stays scoped to /new and the
+        root /, /blog etc. don't pay for it.
+      */}
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&display=swap"
+      />
+
       {/* z 60 — laptop intro (scroll-scrubbed video) */}
       <div className="intro-stage" id="intro-stage">
-        {/*
-          preload="metadata" pulls only the first frame + container info
-          (~100 KB) instead of the full 12 MB. The browser streams the
-          rest as scroll-scrubbing demands it.
-        */}
         <video id="intro-video" muted playsInline preload="metadata">
-          <source src="/landing/intro.mp4" type="video/mp4" />
+          <source src="/landing/v2/intro/laptop.mp4" type="video/mp4" />
         </video>
         <div className="iv-vignette" />
       </div>
+
+      {/* z 70 — top-center "click here" skip prompt */}
+      <button
+        className="enter-pill"
+        id="enter-pill"
+        type="button"
+        aria-label="Skip the intro and go to Seed It"
+      >
+        <span className="ep-dot" />
+        <span className="ep-label">Click here to enter</span>
+        <svg
+          className="ep-arrow"
+          viewBox="0 0 16 16"
+          aria-hidden="true"
+        >
+          <path
+            d="M8 2v10M3.5 7.5 8 12l4.5-4.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
 
       {/* z 9999 — loader */}
       <div className="loader" id="loader">
@@ -47,7 +109,7 @@ export default function LandingPreviewPage() {
         <canvas id="bg-canvas" />
       </div>
 
-      {/* z 1 — WebGL hero (disabled by CSS in current build) */}
+      {/* z 1 — WebGL hero objects (disabled in CSS in current build) */}
       <div id="webgl-root" />
 
       {/* z 9 — fixed hero overlay */}
@@ -58,13 +120,13 @@ export default function LandingPreviewPage() {
             <b className="accent">SEED</b> <b>IT</b>
           </h1>
           <p>{HERO_COPY}</p>
-          <a className="btn" href="#contact" data-cursor-text="Start a project">
+          <a className="btn" href="#work" data-cursor-text="See what we build">
             <span className="br tl" />
             <span className="br tr" />
             <span className="br bl" />
             <span className="br br2" />
-            <span>Start a project</span>
-            <span>↗</span>
+            <span>What we build</span>
+            <span>↓</span>
           </a>
         </div>
       </div>
@@ -89,23 +151,19 @@ export default function LandingPreviewPage() {
               <span id="nav-mark" /> SEED IT
             </a>
             <div className="nav-wave">
-              <i style={{ height: '60%', animationDelay: '0s' }} />
-              <i style={{ height: '90%', animationDelay: '.12s' }} />
-              <i style={{ height: '75%', animationDelay: '.24s' }} />
-              <i style={{ height: '100%', animationDelay: '.36s' }} />
-              <i style={{ height: '65%', animationDelay: '.48s' }} />
-              <i style={{ height: '85%', animationDelay: '.6s' }} />
-              <i style={{ height: '55%', animationDelay: '.72s' }} />
+              {NAV_WAVE_HEIGHTS.map((h, i) => (
+                <i key={i} style={{ height: h, animationDelay: NAV_WAVE_DELAYS[i] }} />
+              ))}
             </div>
             <div className="nav-links">
-              <a href="#work" data-cursor-text="View work">
-                Work <span className="sup">↗</span>
+              <a href="#stack" data-cursor-text="Capabilities">
+                Capabilities <span className="sup">↗</span>
               </a>
-              <a href="#stack" data-cursor-text="See stack">
-                Stack <span className="sup">↗</span>
+              <a href="#work" data-cursor-text="Our products">
+                Products <span className="sup">↗</span>
               </a>
-              <a href="#about" data-cursor-text="About us">
-                About <span className="sup">↗</span>
+              <a href="#about" data-cursor-text="What we do">
+                Services <span className="sup">↗</span>
               </a>
               <a href="/blog" data-cursor-text="Read the blog">
                 Blog <span className="sup">↗</span>
@@ -123,31 +181,27 @@ export default function LandingPreviewPage() {
         <section id="stack" className="spec">
           <div className="wrap">
             <ul className="tags">
-              <li className="motion-piece">WEB DEVELOPMENT</li>
-              <li className="slash">/</li>
-              <li className="motion-piece">VIBE CODING</li>
-              <li className="slash">/</li>
-              <li className="motion-piece">AUTOMATION</li>
-              <li className="slash">/</li>
-              <li className="motion-piece">AI APPS</li>
-              <li className="slash">/</li>
-              <li className="motion-piece">LANDING PAGES</li>
+              {TAGS.flatMap((tag, i) => {
+                const items = [
+                  <li key={`tag-${i}`} className="motion-piece">
+                    {tag === 'BRAND & DESIGN' ? <>BRAND &amp; DESIGN</> : tag}
+                  </li>,
+                ];
+                if (i < TAGS.length - 1) {
+                  items.push(<li key={`slash-${i}`} className="slash">/</li>);
+                }
+                return items;
+              })}
             </ul>
 
             <h2 className="display" data-motion-text="">
-              We <span className="out">specialize</span> in{' '}
-              <span className="ic motion-inline-piece">⚡</span> fast{' '}
-              <span className="accent">website development</span>,{' '}
-              <span className="ic motion-inline-piece">◐</span> live{' '}
-              <span className="accent">vibe-coded</span> products, and{' '}
-              <span className="ic motion-inline-piece">∞</span> clean{' '}
-              <span className="accent">automation</span> for ambitious founders.
+              SEEDIT <span className="out">designs, builds,</span> and ships real products{' '}
+              <span className="ic motion-inline-piece">⚡</span> from marketing dashboards to{' '}
+              <span className="ic motion-inline-piece">◐</span> AI tools and{' '}
+              <span className="accent">automation</span> that runs in the background.
             </h2>
 
-            <p className="bio motion-piece">
-              A small studio of senior builders. Two-week sprints. Live-coded with you. Real
-              products, shipped to the world — auth, billing, AI, all the boring parts done.
-            </p>
+            <p className="bio motion-piece">{STACK_BIO}</p>
 
             <div className="actions">
               <a
@@ -162,12 +216,12 @@ export default function LandingPreviewPage() {
                 <span>Start a project</span>
                 <span>↗</span>
               </a>
-              <a className="btn motion-piece" href="#work" data-cursor-text="View work">
+              <a className="btn motion-piece" href="#work" data-cursor-text="View products">
                 <span className="br tl" />
                 <span className="br tr" />
                 <span className="br bl" />
                 <span className="br br2" />
-                <span>View our work</span>
+                <span>View our products</span>
                 <span>↗</span>
               </a>
             </div>
@@ -179,38 +233,36 @@ export default function LandingPreviewPage() {
           <div className="wrap">
             <div className="section-head">
               <h2 className="display" data-motion-text="">
-                Selected projects.
+                What we build.
                 <br />
-                <span className="out">We&apos;ve shipped</span> over{' '}
-                <span className="accent">40+</span> products.
+                <span className="out">Five platforms,</span>{' '}
+                <span className="accent">shipping now.</span>
               </h2>
               <div className="info motion-piece">
-                Startups · SaaS · AI tools
+                Dashboards · AI SaaS
                 <br />
-                MVPs · Internal tools
+                Sports platforms · CRM
                 <br />
-                Personal projects
+                Automation · Integrations
               </div>
             </div>
 
             <div className="logoGroup">
-              <span className="ent motion-piece">NEXT.JS</span>
-              <span className="pip">·</span>
-              <span className="ent motion-piece">SUPABASE</span>
-              <span className="pip">·</span>
-              <span className="ent motion-piece">OPENAI</span>
-              <span className="pip">·</span>
-              <span className="ent motion-piece">VERCEL</span>
-              <span className="pip">·</span>
-              <span className="ent motion-piece">STRIPE</span>
-              <span className="pip">·</span>
-              <span className="ent motion-piece">FIGMA</span>
-              <span className="pip">·</span>
-              <span className="ent motion-piece">TYPESCRIPT</span>
-              <span className="pip">·</span>
-              <span className="ent motion-piece">POSTGRES</span>
-              <span className="pip">·</span>
-              <span className="ent motion-piece">RESEND</span>
+              {TECH.flatMap((t, i) => {
+                const items = [
+                  <span key={`ent-${i}`} className="ent motion-piece">
+                    {t}
+                  </span>,
+                ];
+                if (i < TECH.length - 1) {
+                  items.push(
+                    <span key={`pip-${i}`} className="pip">
+                      ·
+                    </span>,
+                  );
+                }
+                return items;
+              })}
             </div>
 
             <div className="caseList" id="case-list" />
@@ -224,7 +276,7 @@ export default function LandingPreviewPage() {
               <h2 className="display" data-motion-text="">
                 Built with <span className="accent">intent.</span>
                 <br />
-                <span className="out">Shipped</span> with care.
+                <span className="out">Shipped</span> for UAE business.
               </h2>
             </div>
             <div className="exp-grid" id="exp-grid" />
@@ -241,7 +293,7 @@ export default function LandingPreviewPage() {
               className="bio motion-piece"
               style={{ marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}
             >
-              Two-week sprints. Live-coded with you. Real products, shipped to the world.
+              {CTA_COPY}
             </p>
             <div
               className="actions motion-piece"
@@ -255,12 +307,18 @@ export default function LandingPreviewPage() {
                 <span>{CONTACT_EMAIL}</span>
                 <span>↗</span>
               </a>
-              <a className="btn" href="#" data-cursor-text="Book a call">
+              <a
+                className="btn"
+                href={SITE}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-cursor-text="Visit site"
+              >
                 <span className="br tl" />
                 <span className="br tr" />
                 <span className="br bl" />
                 <span className="br br2" />
-                <span>Book a call</span>
+                <span>seedit.ae</span>
                 <span>↗</span>
               </a>
             </div>
@@ -270,30 +328,17 @@ export default function LandingPreviewPage() {
         <footer>
           <div className="wrap">
             <div className="foot-top">
-              <div>© {new Date().getFullYear()} SEED IT — All rights reserved</div>
+              <div>© {new Date().getFullYear()} SEEDIT · Fertile Seed IT Solutions EST · Dubai, UAE</div>
               <div className="grp">
-                <a href="#work">
-                  Work<span className="sup">↗</span>
-                </a>
-                <a href="#stack">
-                  Stack<span className="sup">↗</span>
-                </a>
-                <a href="#about">
-                  About<span className="sup">↗</span>
-                </a>
-                <a href="/blog">
-                  Blog<span className="sup">↗</span>
-                </a>
+                <a href="#stack">Capabilities<span className="sup">↗</span></a>
+                <a href="#work">Products<span className="sup">↗</span></a>
+                <a href="#about">Services<span className="sup">↗</span></a>
+                <a href="#contact">Contact<span className="sup">↗</span></a>
+                <a href="/blog">Blog<span className="sup">↗</span></a>
               </div>
               <div className="grp">
-                <a href="#">
-                  GH<span className="sup">↗</span>
-                </a>
-                <a href="#">
-                  X<span className="sup">↗</span>
-                </a>
-                <a href="#">
-                  IN<span className="sup">↗</span>
+                <a href={SITE} target="_blank" rel="noopener noreferrer">
+                  seedit.ae<span className="sup">↗</span>
                 </a>
               </div>
             </div>
@@ -307,19 +352,23 @@ export default function LandingPreviewPage() {
       </main>
 
       {/*
-        Scripts run after hydration in source order. Lenis must load before
-        03-intro and 08-scroll since they depend on it.
+        Scripts after hydration in source order.
+        Lenis from CDN (v2 source uses unpkg). The 9 v2 modules each have an
+        IIFE that mutates the DOM by ID — safe to mount after React renders.
       */}
-      <Script src="/landing/js/lenis.min.js" strategy="afterInteractive" />
-      <Script src="/landing/js/01-marks.js" strategy="afterInteractive" />
-      <Script src="/landing/js/02-loader.js" strategy="afterInteractive" />
-      <Script src="/landing/js/03-intro.js" strategy="afterInteractive" />
-      <Script src="/landing/js/04-bg-canvas.js" strategy="afterInteractive" />
-      <Script src="/landing/js/05-cases.js" strategy="afterInteractive" />
-      <Script src="/landing/js/06-experience.js" strategy="afterInteractive" />
-      <Script src="/landing/js/07-motion.js" strategy="afterInteractive" />
-      <Script src="/landing/js/08-scroll.js" strategy="afterInteractive" />
-      <Script src="/landing/js/09-init.js" strategy="afterInteractive" />
+      <Script
+        src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"
+        strategy="afterInteractive"
+      />
+      <Script src="/landing/v2/marks.js" strategy="afterInteractive" />
+      <Script src="/landing/v2/loader.js" strategy="afterInteractive" />
+      <Script src="/landing/v2/intro.js" strategy="afterInteractive" />
+      <Script src="/landing/v2/bgcanvas.js" strategy="afterInteractive" />
+      <Script src="/landing/v2/cases.js" strategy="afterInteractive" />
+      <Script src="/landing/v2/exp.js" strategy="afterInteractive" />
+      <Script src="/landing/v2/motion.js" strategy="afterInteractive" />
+      <Script src="/landing/v2/scroll.js" strategy="afterInteractive" />
+      <Script src="/landing/v2/init.js" strategy="afterInteractive" />
     </>
   );
 }

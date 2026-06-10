@@ -21,6 +21,15 @@
 
   document.body.classList.add('intro-active');
 
+  // Top-center "click here to enter" pill: jumps straight to the SEED IT hero.
+  const pill = document.getElementById('enter-pill');
+  if (pill) {
+    pill.addEventListener('click', () => {
+      if (window.__scrollToHero) window.__scrollToHero();
+      pill.classList.add('hidden');
+    });
+  }
+
   // Fetch the video as a Blob and use an object URL — the file server we're
   // hosted on doesn't support byte-range requests properly, so the raw <source>
   // ends up non-seekable (seekable.end === 0). Loading into memory makes
@@ -75,6 +84,12 @@
       stage.style.opacity = String(1 - t);
     } else {
       stage.style.opacity = '1';
+    }
+
+    // hide the "click here" pill once we're most of the way through the intro
+    if (pill) {
+      if (p > 0.6) pill.classList.add('hidden');
+      else pill.classList.remove('hidden');
     }
 
     // when fully past the intro, finish: stop holding the page back
