@@ -331,5 +331,5 @@
   .foot-top a:hover{color:var(--accent)}
   .foot-top .grp{display:flex;gap:20px;flex-wrap:wrap}
   .giant-wrap{padding-top:80px;overflow:hidden;position:relative}
-  .giant{font-family:var(--font-mono);font-weight:700;letter-spacing:-.03em;line-height:.82;text-align:center;font-size:clamp(120px,32vw,520px);white-space:nowrap;color:#fff;margin-bottom:-.12em;will-change:clip-path,opacity;clip-path:inset(100% 0 0 0);transition:clip-path 1.2s cubic-bezier(.16,1,.3,1)}
+  .giant{font-family:var(--font-mono);font-weight:700;letter-spacing:-.03em;line-height:.82;text-align:center;font-size:clamp(56px,23vw,460px);white-space:nowrap;color:#fff;margin-bottom:-.12em;will-change:clip-path,opacity;clip-path:inset(100% 0 0 0);transition:clip-path 1.2s cubic-bezier(.16,1,.3,1)}
   .giant.in{clip-path:inset(0 0 0 0)}
