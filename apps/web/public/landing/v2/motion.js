@@ -64,16 +64,46 @@
 
   const clamp01 = x => Math.max(0, Math.min(1, x));
 
+  // Shared trigger line (fraction of viewport height, from the top). The scrub
+  // completes as an element's top crosses REVEAL_LINE — ~58% down — so the
+  // reveal lands where the eye rests, not up near the top. Authoritative value
+  // lives in reveal-config.js; fall back if it hasn't loaded yet.
+  const CFG = window.__REVEAL || { line: 0.58, lead: 0.32 };
+  const REVEAL_LINE = CFG.line;
+  const REVEAL_LEAD = CFG.lead;
+
+  function revealAll(){
+    for (let i = 0; i < elements.length; i++) {
+      const el = elements[i];
+      el.style.opacity = '1';
+      el.style.filter = 'none';
+      el.style.transform = 'none';
+    }
+  }
+
+  // prefers-reduced-motion: show everything in its final state and never scrub.
+  // (CSS provides the same static state, so content is legible even before this
+  // runs — see the reduced-motion block in landing.css.)
+  const reduceMotion =
+    window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduceMotion) {
+    revealAll();
+    window.__updateMotion = () => {};
+    window.__refreshMotion = () => { elements = collect(); revealAll(); };
+    return;
+  }
+
   window.__updateMotion = (scrollY, vh) => {
+    // begin the scrub REVEAL_LEAD below the line; complete it as the top
+    // crosses the line.
+    const trigger = vh * (REVEAL_LINE + REVEAL_LEAD);
+    const range = vh * REVEAL_LEAD;
     for (let i = 0; i < elements.length; i++) {
       const el = elements[i];
       const rect = el.getBoundingClientRect();
       const top = rect.top;
-      // begin reveal when element enters the bottom 85% of the viewport
-      const trigger = vh * 0.92;
-      const range = vh * 0.55; // how much scroll to complete reveal
       let p = (trigger - top) / range;
-      // stagger by index-in-parent (each word starts 5% later)
+      // stagger by index-in-parent (each word starts a touch later)
       const mi = Number(el.dataset.mi || 0);
       p -= mi * 0.04;
       p = clamp01(p);

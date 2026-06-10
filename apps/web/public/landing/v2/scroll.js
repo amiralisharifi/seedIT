@@ -140,10 +140,12 @@
     // 3) Motion elements
     if (window.__updateMotion) window.__updateMotion(scrollY, vh);
 
-    // 4) Giant footer text — reveal when top enters the viewport
+    // 4) Giant footer text — reveal once its top crosses the shared trigger
+    // line (~58% down), the same threshold the word/section reveals use.
     if (giant && !giant.classList.contains('in')) {
       const r = giant.getBoundingClientRect();
-      if (r.top < vh * 0.85) giant.classList.add('in');
+      const line = (window.__REVEAL && window.__REVEAL.line) || 0.58;
+      if (r.top < vh * line) giant.classList.add('in');
     }
 
     requestAnimationFrame(frame);

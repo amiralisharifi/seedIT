@@ -224,6 +224,16 @@
   .motion-word, .motion-inline-piece{display:inline-block;will-change:opacity,filter,transform;opacity:.16;filter:blur(10px);transform:translateY(28px)}
   .motion-piece{display:block;will-change:opacity,filter,transform;opacity:.16;filter:blur(10px);transform:translateY(28px)}
 
+  /* prefers-reduced-motion: show every reveal in its final state, no scrub.
+     !important so it wins over the inline styles motion.js / scroll.js write,
+     and so content stays legible even if those scripts never run. */
+  @media (prefers-reduced-motion: reduce){
+    .motion-word, .motion-inline-piece, .motion-piece{
+      opacity:1!important;filter:none!important;transform:none!important;
+    }
+    .giant{clip-path:inset(0 0 0 0)!important;transition:none!important}
+  }
+
   .bio{margin-top:36px;max-width:420px;color:var(--text-muted);font-size:14px;line-height:1.6}
   .actions{margin-top:42px;display:flex;gap:14px;flex-wrap:wrap}
 

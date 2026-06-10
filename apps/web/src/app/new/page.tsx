@@ -360,6 +360,7 @@ export default function LandingPreviewPage() {
         src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"
         strategy="afterInteractive"
       />
+      <Script src="/landing/v2/reveal-config.js" strategy="afterInteractive" />
       <Script src="/landing/v2/marks.js" strategy="afterInteractive" />
       <Script src="/landing/v2/loader.js" strategy="afterInteractive" />
       <Script src="/landing/v2/intro.js" strategy="afterInteractive" />
