@@ -19,3 +19,12 @@ export type CtaData = {
   buttonLabel?: string;
   buttonHref?: string;
 };
+
+export type FeatureItem = { icon?: string; title?: string; text?: string };
+export type FeaturesData = { heading?: string; items?: FeatureItem[] };
+
+export type TestimonialItem = { quote?: string; author?: string; role?: string };
+export type TestimonialsData = { heading?: string; items?: TestimonialItem[] };
+
+export type FaqItem = { question?: string; answer?: string };
+export type FaqData = { heading?: string; items?: FaqItem[] };

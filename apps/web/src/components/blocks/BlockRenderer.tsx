@@ -2,7 +2,18 @@ import { Fragment, type ReactNode } from 'react';
 import { Hero } from './Hero';
 import { RichText } from './RichText';
 import { Cta } from './Cta';
-import type { Section, HeroData, RichTextData, CtaData } from './types';
+import { Features } from './Features';
+import { Testimonials } from './Testimonials';
+import { Faq } from './Faq';
+import type {
+  Section,
+  HeroData,
+  RichTextData,
+  CtaData,
+  FeaturesData,
+  TestimonialsData,
+  FaqData,
+} from './types';
 
 // type → renderer. Each entry narrows the loosely-typed block `data` to its
 // block's shape (all fields optional, so the cast is safe). Add a block here +
@@ -12,6 +23,9 @@ const REGISTRY: Record<string, (data: Record<string, unknown>) => ReactNode> = {
   hero: (d) => <Hero data={d as HeroData} />,
   richText: (d) => <RichText data={d as RichTextData} />,
   cta: (d) => <Cta data={d as CtaData} />,
+  features: (d) => <Features data={d as FeaturesData} />,
+  testimonials: (d) => <Testimonials data={d as TestimonialsData} />,
+  faq: (d) => <Faq data={d as FaqData} />,
 };
 
 export function BlockRenderer({ sections }: { sections: unknown }) {

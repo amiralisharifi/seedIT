@@ -43,6 +43,47 @@ export const blockSchemas: Record<string, BlockSchema> = {
       buttonHref: fields.text({ helpText: 'e.g. /contact or mailto:…' }),
     },
   },
+  features: {
+    label: 'Features',
+    fields: {
+      heading: fields.text({ helpText: 'Optional section heading' }),
+      items: fields.repeater({
+        max: 6,
+        fields: {
+          icon: fields.text({ helpText: 'Emoji or short symbol' }),
+          title: fields.text({ required: true }),
+          text: fields.textarea(),
+        },
+      }),
+    },
+  },
+  testimonials: {
+    label: 'Testimonials',
+    fields: {
+      heading: fields.text({ helpText: 'Optional section heading' }),
+      items: fields.repeater({
+        max: 6,
+        fields: {
+          quote: fields.textarea({ required: true }),
+          author: fields.text({ required: true }),
+          role: fields.text({ helpText: 'e.g. "Owner, Glow Salon"' }),
+        },
+      }),
+    },
+  },
+  faq: {
+    label: 'FAQ',
+    fields: {
+      heading: fields.text({ helpText: 'Optional section heading' }),
+      items: fields.repeater({
+        max: 12,
+        fields: {
+          question: fields.text({ required: true }),
+          answer: fields.textarea({ required: true }),
+        },
+      }),
+    },
+  },
 };
 
 export type BlockType = keyof typeof blockSchemas;
