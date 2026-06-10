@@ -6,50 +6,52 @@ import { collections } from '@/config';
 import { queries } from '@seed-panel/db';
 import type { CollectionDefinition, FieldDef } from '@seed-panel/core';
 
-const TOP_LEVEL_TYPES = new Set([
-  'slug', 'select', 'boolean', 'datetime', 'date',
-  'image', 'imageGallery', 'tags', 'reference',
-  'number', 'url', 'email', 'file', 'icon', 'blocks', 'repeater',
-]);
+// Field types whose values are human-language content — eligible to live in the
+// localized `content` jsonb on a localized collection. Every other type maps to a
+// real top-level column.
+const LOCALIZABLE_TYPES = new Set(['text', 'textarea', 'richText']);
 
-function isLocalized(name: string, field: FieldDef, col: CollectionDefinition) {
-  if (!col.localized) return false;
-  if (TOP_LEVEL_TYPES.has(field.type)) return false;
-  if (name.startsWith('seo')) return false;
-  return true;
-}
-
+// The Drizzle property name a field writes to on its table.
 function colName(name: string, field: FieldDef): string {
   if (field.type === 'image') return name + 'Url';
   if (field.type === 'reference') return name + 'Id';
   return name;
 }
 
-function buildRecord(col: CollectionDefinition, fd: FormData): Record<string, unknown> {
+function buildRecord(
+  col: CollectionDefinition,
+  fd: FormData,
+  columns: Set<string>,
+): Record<string, unknown> {
   const contentEn: Record<string, unknown> = {};
   const record: Record<string, unknown> = {};
 
   for (const [name, field] of Object.entries(col.fields)) {
     const raw = fd.get(`f_${name}`);
+    const column = colName(name, field);
 
-    if (isLocalized(name, field, col)) {
+    // A content field goes into the localized `content` jsonb — but ONLY when
+    // it isn't backed by a real top-level column. Fields like `path`,
+    // `clientName`, or `seoTitle` have their own column, so they must write
+    // there even on a localized collection; otherwise the column stays null and
+    // NOT-NULL constraints fail (e.g. pages.path).
+    if (col.localized && LOCALIZABLE_TYPES.has(field.type) && !columns.has(column)) {
       if (raw !== null) contentEn[name] = raw as string;
       continue;
     }
 
-    const col_ = colName(name, field);
     if (raw === null || raw === '') continue;
 
     if (field.type === 'boolean') {
-      record[col_] = raw === 'true' || raw === 'on';
+      record[column] = raw === 'true' || raw === 'on';
     } else if (field.type === 'number') {
-      record[col_] = raw ? Number(raw) : null;
+      record[column] = raw ? Number(raw) : null;
     } else if (field.type === 'datetime' || field.type === 'date') {
-      record[col_] = raw ? new Date(raw as string) : null;
+      record[column] = raw ? new Date(raw as string) : null;
     } else if (field.type === 'tags') {
-      record[col_] = (raw as string).split(',').map((t) => t.trim()).filter(Boolean);
+      record[column] = (raw as string).split(',').map((t) => t.trim()).filter(Boolean);
     } else {
-      record[col_] = raw;
+      record[column] = raw;
     }
   }
 
@@ -113,7 +115,8 @@ export async function createRecord(
   const collection = collections.find((c) => c.slug === collectionSlug);
   if (!collection) return { error: `Collection not found: ${collectionSlug}` };
 
-  const data = buildRecord(collection, fd);
+  const columns = new Set(queries.getCmsColumnNames(collection.table));
+  const data = buildRecord(collection, fd, columns);
 
   // Validate required top-level fields
   const slugField = Object.entries(collection.fields).find(([, f]) => f.type === 'slug');
@@ -143,7 +146,8 @@ export async function updateRecord(
   const collection = collections.find((c) => c.slug === collectionSlug);
   if (!collection) return { error: `Collection not found: ${collectionSlug}` };
 
-  const data = buildRecord(collection, fd);
+  const columns = new Set(queries.getCmsColumnNames(collection.table));
+  const data = buildRecord(collection, fd, columns);
 
   try {
     await queries.updateCmsRecord(collection.table, id, data);

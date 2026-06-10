@@ -11,7 +11,7 @@
  * comes from the collection definition.
  */
 
-import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+import { and, desc, eq, getTableColumns, isNull, sql } from 'drizzle-orm';
 import { db } from '../client';
 import {
   blogPosts,
@@ -41,6 +41,14 @@ export function getCmsTable(name: string) {
     );
   }
   return cmsTables[name as CmsTableName];
+}
+
+// The top-level column names (Drizzle property names, e.g. `path`, `coverImageUrl`,
+// `seoTitle`) of a CMS table. The form action uses this to decide whether a field
+// writes to a real column or into the localized `content` jsonb — the table is the
+// source of truth, so a column always wins over localization.
+export function getCmsColumnNames(name: string): string[] {
+  return Object.keys(getTableColumns(getCmsTable(name)));
 }
 
 export interface CmsListOptions {
