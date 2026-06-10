@@ -20,16 +20,16 @@ export async function POST(request: NextRequest) {
   const { path, tag } = (await request.json()) as { path?: string; tag?: string };
 
   if (tag) {
-    revalidateTag(tag);
+    revalidateTag(tag, 'max');
   }
 
   if (path) {
-    revalidatePath(path);
+    revalidatePath(path, 'page');
     // Blog post detail pages share a route segment — flush the dynamic group too
     if (path.startsWith('/blog/')) revalidatePath('/blog/[slug]', 'page');
   } else if (!tag) {
     // Backwards-compatible default behaviour for existing blog callers
-    revalidatePath('/blog');
+    revalidatePath('/blog', 'page');
     revalidatePath('/blog/[slug]', 'page');
   }
 
