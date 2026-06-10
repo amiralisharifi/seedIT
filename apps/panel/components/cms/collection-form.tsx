@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef, useState } from 'react';
 import type { CollectionDefinition, FieldDef } from '@seed-panel/core';
 import type { ActionResult } from '@/app/(panel)/content/[collection]/actions';
 import { SerpPreview } from './serp-preview';
+import { BlocksEditor } from './blocks-editor';
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://seedit.ae').replace(/\/$/, '');
 
@@ -59,6 +60,8 @@ function getInitialValue(
   const val = record[db];
   if (val == null) return '';
   if (field.type === 'tags' && Array.isArray(val)) return val.join(', ');
+  if (field.type === 'blocks' || field.type === 'repeater')
+    return JSON.stringify(Array.isArray(val) ? val : []);
   if (typeof val === 'string' && (field.type === 'datetime' || field.type === 'date'))
     return val.slice(0, 16);
   if (val instanceof Date) return val.toISOString().slice(0, 16);
@@ -89,7 +92,17 @@ function FieldInput({
   const lbl = 'block text-xs font-medium text-muted-foreground capitalize';
   const help = 'text-xs text-muted-foreground/70';
 
-  if (['blocks', 'repeater', 'imageGallery', 'file', 'icon'].includes(field.type)) {
+  if (field.type === 'blocks') {
+    return (
+      <div className={wrap}>
+        <span className={lbl}>{label}</span>
+        <BlocksEditor name={name} acceptedTypes={field.blocks} initialJson={initialValue} />
+        {field.helpText && <p className={help}>{field.helpText}</p>}
+      </div>
+    );
+  }
+
+  if (['repeater', 'imageGallery', 'file', 'icon'].includes(field.type)) {
     return (
       <div className={wrap}>
         <span className={lbl}>{label}</span>

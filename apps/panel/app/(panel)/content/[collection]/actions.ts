@@ -50,6 +50,14 @@ function buildRecord(
       record[column] = raw ? new Date(raw as string) : null;
     } else if (field.type === 'tags') {
       record[column] = (raw as string).split(',').map((t) => t.trim()).filter(Boolean);
+    } else if (field.type === 'blocks' || field.type === 'repeater') {
+      // The editor submits these as a JSON array string → store as jsonb.
+      try {
+        const parsed: unknown = JSON.parse(raw as string);
+        record[column] = Array.isArray(parsed) ? parsed : [];
+      } catch {
+        record[column] = [];
+      }
     } else {
       record[column] = raw;
     }
