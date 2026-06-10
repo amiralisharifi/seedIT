@@ -20,18 +20,8 @@ const SLUG_FIELD_NAME: Record<string, string> = {
   pages: 'path',
 };
 
-const TOP_LEVEL_TYPES = new Set([
-  'slug', 'select', 'boolean', 'datetime', 'date',
-  'image', 'imageGallery', 'tags', 'reference',
-  'number', 'url', 'email', 'file', 'icon', 'blocks', 'repeater',
-]);
-
-function isLocalized(name: string, field: FieldDef, col: CollectionDefinition) {
-  if (!col.localized) return false;
-  if (TOP_LEVEL_TYPES.has(field.type)) return false;
-  if (name.startsWith('seo')) return false;
-  return true;
-}
+// Field types whose values can live in the localized `content` jsonb.
+const LOCALIZABLE_TYPES = new Set(['text', 'textarea', 'richText']);
 
 function colToDb(name: string, field: FieldDef): string {
   if (field.type === 'image') return name + 'Url';
@@ -39,14 +29,28 @@ function colToDb(name: string, field: FieldDef): string {
   return name;
 }
 
+// Mirror of the server action's routing (content/[collection]/actions.ts): a
+// field is localized content only when it's text-like AND has no real top-level
+// column. Fields like `path` / `clientName` / `seoTitle` own a column, so they
+// read/write there even on a localized collection.
+function isLocalizedField(
+  name: string,
+  field: FieldDef,
+  col: CollectionDefinition,
+  columns: Set<string>,
+): boolean {
+  return Boolean(col.localized) && LOCALIZABLE_TYPES.has(field.type) && !columns.has(colToDb(name, field));
+}
+
 function getInitialValue(
   name: string,
   field: FieldDef,
   col: CollectionDefinition,
   record: Record<string, unknown> | null,
+  columns: Set<string>,
 ): string {
   if (!record) return '';
-  if (isLocalized(name, field, col)) {
+  if (isLocalizedField(name, field, col, columns)) {
     const content = record.content as Record<string, Record<string, unknown>> | undefined;
     const val = content?.en?.[name];
     return val != null ? String(val) : '';
@@ -324,11 +328,16 @@ export function CollectionForm({
   collection,
   record,
   action,
+  columns,
 }: {
   collection: CollectionDefinition;
   record: Record<string, unknown> | null;
   action: (prev: ActionResult | null, fd: FormData) => Promise<ActionResult>;
+  // Real top-level column names of the collection's table. Decides whether a
+  // field reads/writes its own column or the localized `content` blob.
+  columns: string[];
 }) {
+  const columnSet = new Set(columns);
   const [state, formAction, pending] = useActionState(action, null);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -352,8 +361,8 @@ export function CollectionForm({
   }
 
   const fieldEntries = Object.entries(collection.fields);
-  const localizedFields = fieldEntries.filter(([n, f]) => isLocalized(n, f, collection));
-  const topFields = fieldEntries.filter(([n, f]) => !isLocalized(n, f, collection));
+  const localizedFields = fieldEntries.filter(([n, f]) => isLocalizedField(n, f, collection, columnSet));
+  const topFields = fieldEntries.filter(([n, f]) => !isLocalizedField(n, f, collection, columnSet));
   const seoFields = topFields.filter(([n]) => n.startsWith('seo'));
   const settingsFields = topFields.filter(([n]) => !n.startsWith('seo'));
   const errorMsg = state && 'error' in state ? state.error : null;
@@ -385,7 +394,7 @@ export function CollectionForm({
               key={name}
               name={name}
               field={field}
-              initialValue={getInitialValue(name, field, collection, record)}
+              initialValue={getInitialValue(name, field, collection, record, columnSet)}
               onTitleChange={name === 'title' ? handleTitleChange : undefined}
             />
           ))}
@@ -401,7 +410,7 @@ export function CollectionForm({
             </div>
           )}
           {settingsFields.map(([name, field]) => (
-            <FieldInput key={name} name={name} field={field} initialValue={getInitialValue(name, field, collection, record)} />
+            <FieldInput key={name} name={name} field={field} initialValue={getInitialValue(name, field, collection, record, columnSet)} />
           ))}
         </section>
       )}
@@ -413,7 +422,7 @@ export function CollectionForm({
             <div className="flex-1 border-t border-border" />
           </div>
           {seoFields.map(([name, field]) => (
-            <FieldInput key={name} name={name} field={field} initialValue={getInitialValue(name, field, collection, record)} />
+            <FieldInput key={name} name={name} field={field} initialValue={getInitialValue(name, field, collection, record, columnSet)} />
           ))}
           {seoFields.some(([n]) => n === 'seoTitle') &&
             seoFields.some(([n]) => n === 'seoDescription') && (
@@ -429,7 +438,7 @@ export function CollectionForm({
                   pathPrefix={PUBLIC_PATH_PREFIX[collection.slug] ?? `/${collection.slug}/`}
                   fallbackTitle={
                     fieldEntries.find(([n]) => n === 'title')?.[0]
-                      ? getInitialValue('title', collection.fields.title!, collection, record)
+                      ? getInitialValue('title', collection.fields.title!, collection, record, columnSet)
                       : undefined
                   }
                 />

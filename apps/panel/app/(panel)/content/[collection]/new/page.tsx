@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/layout/page-header';
 import { CollectionForm } from '@/components/cms/collection-form';
 import { collections } from '@/config';
+import { queries } from '@seed-panel/db';
 import { createRecord } from '../actions';
 
 export async function generateMetadata({ params }: { params: Promise<{ collection: string }> }) {
@@ -20,6 +21,7 @@ export default async function NewRecordPage({
   if (!collection) notFound();
 
   const action = createRecord.bind(null, slug);
+  const columns = queries.getCmsColumnNames(collection.table);
 
   return (
     <>
@@ -28,7 +30,7 @@ export default async function NewRecordPage({
         description={`Create a new ${collection.nameSingular.toLowerCase()} in ${collection.name}.`}
       />
       <div className="p-8 max-w-2xl">
-        <CollectionForm collection={collection} record={null} action={action} />
+        <CollectionForm collection={collection} record={null} action={action} columns={columns} />
       </div>
     </>
   );

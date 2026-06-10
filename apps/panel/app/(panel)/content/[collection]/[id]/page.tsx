@@ -33,6 +33,7 @@ export default async function EditRecordPage({
   if (!record) notFound();
 
   const action = updateRecord.bind(null, slug, id);
+  const columns = queries.getCmsColumnNames(collection.table);
 
   // Use the title field value as the page title
   const titleVal =
@@ -49,7 +50,7 @@ export default async function EditRecordPage({
         description={`${collection.nameSingular} · ${id.slice(0, 8)}…`}
       />
       <div className="p-8 max-w-2xl">
-        <CollectionForm collection={collection} record={record} action={action} />
+        <CollectionForm collection={collection} record={record} action={action} columns={columns} />
       </div>
     </>
   );
