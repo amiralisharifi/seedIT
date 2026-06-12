@@ -47,27 +47,45 @@ exists in the repo. This is a **port + de-hardcode + extend** job, not a rebuild
 
 ---
 
-## Phase 0 — Brand-config foundation + de-hardcode `/new`
+## Phase 0 — Config foundation + de-hardcode `/new`
 
 The forkability gate everything else depends on. Do first.
 
-**Brand config** (`config/brand.ts` + its Zod schema in `packages/config`):
-- Fill real values: `business.whatsapp` and `business.phone` (currently
-  `+971 50 000 0000` placeholders → real `+971 50 842 9508`).
-- Add `business.hours` (e.g. `"Sun–Thu 9:00–18:00 GST"`) — new optional field;
-  add it to the `BrandConfig` Zod schema too.
-- Optional: `business.whatsappPrefill` (else derive from `brand.name`).
+**How contact data actually works (corrects the PRDs).** Contact values are NOT
+hardcoded on the live site — they live in a panel-editable `contact` settings
+row (`Settings → Contact` → `saveSettings('contact')`) layered over `brand.ts`
+defaults, read at runtime via `getSettings('contact')`. The current `/`
+homepage already consumes this. So: **real phone / WhatsApp / hours are typed
+into the panel, never into code.** `brand.ts` only supplies fork defaults.
 
-**De-hardcode `/new`** (`apps/web/src/app/new/page.tsx`, `landing.css`):
-- Replace identity strings with config reads: `CONTACT_EMAIL` →
-  `brand.business.supportEmail`; `SITE` → site URL from config/env;
-  `'SEED IT'` / `'SEEDIT'` → `brand.name` / `brand.shortName`.
-- Keep `HERO_COPY`, `STACK_BIO`, `CTA_COPY`, `TAGS`, `TECH`, product list as
-  documented page constants (content, not brand tokens). Flag the 5 product
-  names (Salut/Neshat/POOK/Counsel/Ayvan) as a later candidate for config/CMS.
+0a. **Add `hours`** end-to-end (it exists nowhere yet): `brand.business.hours` +
+    its Zod schema (`packages/config`), the `Settings → Contact` form + action +
+    page initial. *(Done — landed first; panel/config-only, low risk.)*
 
-**Exit:** `forkability-guardian` finds no hardcoded identity strings in `/new`.
-**Effort:** ~0.5 day. **Blocks:** all other phases.
+0b. **Give `apps/web` access to `@/config`** — the real blocker. `apps/web`
+    tsconfig only has `@/* → ./src/*`; it can't import `brand` at all, which is
+    *why* `/new` is hardcoded. Mirror the panel: add `@/config` + `@/config/*`
+    path aliases → `../../config`, and verify `apps/web` resolves the transitive
+    deps (`@seed-panel/config`/`core`) — add to `package.json` if missing. Gate
+    on a successful `next build` (can't verify in the sandbox).
+
+0c. **Shared contact helper** `apps/web/src/lib/contact.ts` — `getContact()`
+    reads `getSettings('contact')` merged over `brand.business` defaults, exposes
+    `{ phone, whatsapp, supportEmail, hours, waDigits, waLink, telLink }`. No
+    literal fallbacks (today's `|| 'hello@seedit.ae'` violates sacred-config).
+    Use it on `/`, `/new`, and the WhatsApp/contact components.
+
+0d. **De-hardcode `/new`** (`new/page.tsx`, `landing.css`): make it `async`;
+    `CONTACT_EMAIL` → `getContact().supportEmail`; `SITE` → `SITE_URL`
+    (`@/lib/site`, already exists); `'SEED IT'`/`'SEEDIT'` → `brand.name`/
+    `shortName`. The stylized hero split (`SEED`/`IT` accent) needs a small
+    design call — keep visual, source text from `brand.name`. Keep `HERO_COPY`,
+    `STACK_BIO`, `TAGS`, `TECH`, product list as documented page content (the 5
+    product names → later candidate for config/CMS).
+
+**Exit:** `forkability-guardian` clean on `/new`; `next build` green.
+**Effort:** ~0.5–1 day (the alias/deps + build verification is the real cost).
+**Blocks:** all other phases.
 
 ---
 

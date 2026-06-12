@@ -70,6 +70,7 @@ export const brand: BrandConfig = {
     salesEmail: 'sales@seedit.ae',
     phone: '+971 50 000 0000',
     whatsapp: '+971 50 000 0000',          // can differ from phone
+    hours: 'Sun–Thu · 9:00–18:00 GST',     // default — override in Settings → Contact
     tradeLicense: '',                       // fill when you have one
     vatTrn: '',
   },

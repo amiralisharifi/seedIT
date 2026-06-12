@@ -57,6 +57,7 @@ export const brandSchema = z.object({
     salesEmail: z.string().email(),
     phone: z.string(),
     whatsapp: z.string(),
+    hours: z.string(),
     tradeLicense: z.string(),
     vatTrn: z.string(),
   }),

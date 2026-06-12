@@ -21,6 +21,7 @@ export default async function ContactSettingsPage() {
   const initial = {
     phone: (contact.phone as string) || brand.business.phone,
     whatsapp: (contact.whatsapp as string) || brand.business.whatsapp,
+    hours: (contact.hours as string) || brand.business.hours,
     supportEmail: (contact.supportEmail as string) || brand.business.supportEmail,
     salesEmail: (contact.salesEmail as string) || brand.business.salesEmail,
     address: (contact.address as string) || brand.business.address,

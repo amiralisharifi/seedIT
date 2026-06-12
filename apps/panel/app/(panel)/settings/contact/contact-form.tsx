@@ -76,6 +76,7 @@ export function ContactForm({
       <SectionTitle>Contact</SectionTitle>
       <Field label="Phone" name="phone" type="tel" value={initial.phone ?? ''} placeholder="+971 50 000 0000" mono />
       <Field label="WhatsApp" name="whatsapp" type="tel" value={initial.whatsapp ?? ''} placeholder="+971 50 000 0000" mono />
+      <Field label="Business hours" name="hours" value={initial.hours ?? ''} placeholder="Sun–Thu · 9:00–18:00 GST" />
       <Field label="Support email" name="supportEmail" type="email" value={initial.supportEmail ?? ''} placeholder="hello@example.com" mono />
       <Field label="Sales email" name="salesEmail" type="email" value={initial.salesEmail ?? ''} placeholder="sales@example.com" mono />
 

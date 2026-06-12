@@ -12,6 +12,7 @@ export async function saveContactSettings(
   const contact = {
     phone: (fd.get('phone') as string) || '',
     whatsapp: (fd.get('whatsapp') as string) || '',
+    hours: (fd.get('hours') as string) || '',
     supportEmail: (fd.get('supportEmail') as string) || '',
     salesEmail: (fd.get('salesEmail') as string) || '',
     address: (fd.get('address') as string) || '',
