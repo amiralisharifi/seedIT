@@ -81,28 +81,37 @@
     }
   }
 
-  // prefers-reduced-motion: show everything in its final state and never scrub.
-  // (CSS provides the same static state, so content is legible even before this
-  // runs — see the reduced-motion block in landing.css.)
-  const reduceMotion =
-    window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (reduceMotion) {
+  // Static mode = reduced motion OR small screens: show everything in its
+  // final state and never scrub. (CSS provides the same static state, so
+  // content is legible even before this runs — see the matching media blocks
+  // in landing.css.) On phones this skips the per-frame reveal work entirely.
+  const mq = (q) => window.matchMedia && window.matchMedia(q).matches;
+  const staticMode = mq('(prefers-reduced-motion: reduce)') || mq('(max-width: 760px)');
+  if (staticMode) {
     revealAll();
     window.__updateMotion = () => {};
     window.__refreshMotion = () => { elements = collect(); revealAll(); };
     return;
   }
 
+  // Reused across frames so the read pass doesn't allocate each RAF.
+  let tops = [];
+
   window.__updateMotion = (scrollY, vh) => {
     // begin the scrub REVEAL_LEAD below the line; complete it as the top
     // crosses the line.
     const trigger = vh * (REVEAL_LINE + REVEAL_LEAD);
     const range = vh * REVEAL_LEAD;
-    for (let i = 0; i < elements.length; i++) {
+    const n = elements.length;
+
+    // READ pass — measure every element first, so we never interleave layout
+    // reads with style writes (that forced a reflow on every iteration).
+    for (let i = 0; i < n; i++) tops[i] = elements[i].getBoundingClientRect().top;
+
+    // WRITE pass — apply the computed reveal state.
+    for (let i = 0; i < n; i++) {
       const el = elements[i];
-      const rect = el.getBoundingClientRect();
-      const top = rect.top;
-      let p = (trigger - top) / range;
+      let p = (trigger - tops[i]) / range;
       // stagger by index-in-parent (each word starts a touch later)
       const mi = Number(el.dataset.mi || 0);
       p -= mi * 0.04;

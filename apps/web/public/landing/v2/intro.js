@@ -9,6 +9,21 @@
   const video = document.getElementById('intro-video');
   if (!stage || !video) return;
 
+  // Skip the scroll-scrubbed laptop intro under reduced motion OR on small
+  // screens — downloading the whole clip into memory and decoding frames on
+  // scroll is a heavy mobile cost. CSS hides the stage + enter pill and
+  // collapses the .intro-spacer, so the page opens straight on the hero with
+  // no scroll budget reserved for the video.
+  const mq = (q) => window.matchMedia && window.matchMedia(q).matches;
+  const staticMode = mq('(prefers-reduced-motion: reduce)') || mq('(max-width: 760px)');
+  if (staticMode) {
+    stage.style.display = 'none';
+    window.__introHeight = () => 0;
+    const skip = document.getElementById('enter-pill');
+    if (skip) skip.style.display = 'none';
+    return;
+  }
+
   const INTRO_VH = 400;            // matches .intro-spacer height: 400vh
   const FADE_TAIL = 0.94;          // after this fraction we begin fading out
 

@@ -7,6 +7,26 @@
 //  - giant footer reveal via IntersectionObserver (separate)
 
 (function(){
+  const root = document.documentElement;
+
+  // Static mode = reduced motion OR small screens. In both we skip the
+  // smooth-scroll, the scroll-driven scrubbing and the mandatory hero stop:
+  // CSS pins the hero and every reveal to their final state (see the matching
+  // media blocks in landing.css) and native scrolling is left completely
+  // untouched — we never preventDefault wheel/touch. On phones this also
+  // avoids the Lenis RAF and the per-frame reveal work, which are the heaviest
+  // costs on mobile GPUs.
+  const mq = (q) => window.matchMedia && window.matchMedia(q).matches;
+  const staticMode = mq('(prefers-reduced-motion: reduce)') || mq('(max-width: 760px)');
+  if (staticMode) {
+    root.style.setProperty('--hero-scale', '1');
+    root.style.setProperty('--hero-opacity', '1');
+    root.style.setProperty('--hero-blur', '0px');
+    root.style.setProperty('--footer-opacity', '1');
+    window.__scrollToHero = function(){ window.scrollTo({ top: 0 }); };
+    return;
+  }
+
   let scrollY = 0;
 
   let lenis = null;
@@ -21,9 +41,20 @@
     lenis.on('scroll', ({ scroll }) => { scrollY = scroll; });
   }
 
-  const root = document.documentElement;
-
+  // Giant footer text — reveal once when it scrolls into view. An
+  // IntersectionObserver replaces a getBoundingClientRect() that used to run
+  // on every RAF frame (a forced layout read per frame). rootMargin bottom is
+  // derived from the shared reveal line (~58% down the viewport).
   const giant = document.getElementById('giant');
+  if (giant) {
+    const line = (window.__REVEAL && window.__REVEAL.line) || 0.58;
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) { giant.classList.add('in'); io.disconnect(); }
+      }
+    }, { rootMargin: `0px 0px -${Math.round((1 - line) * 100)}% 0px`, threshold: 0 });
+    io.observe(giant);
+  }
 
   // Smooth "skip the laptop intro" jump used by the top "click here" pill.
   window.__scrollToHero = function(){
@@ -140,13 +171,7 @@
     // 3) Motion elements
     if (window.__updateMotion) window.__updateMotion(scrollY, vh);
 
-    // 4) Giant footer text — reveal once its top crosses the shared trigger
-    // line (~58% down), the same threshold the word/section reveals use.
-    if (giant && !giant.classList.contains('in')) {
-      const r = giant.getBoundingClientRect();
-      const line = (window.__REVEAL && window.__REVEAL.line) || 0.58;
-      if (r.top < vh * line) giant.classList.add('in');
-    }
+    // (giant footer reveal is handled by an IntersectionObserver above)
 
     requestAnimationFrame(frame);
   }

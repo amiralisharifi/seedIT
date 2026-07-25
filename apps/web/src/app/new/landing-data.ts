@@ -1,12 +1,30 @@
-// SEEDIT product portfolio — 5 real products, each card tinted with its own brand.
-(function(){
-  const list = document.getElementById('case-list');
-  if (!list) return;
+// Content + inline SVG artwork for the /new landing.
+//
+// This used to be injected client-side by public/landing/v2/cases.js and
+// exp.js (via innerHTML), which left the Products and Capabilities sections
+// empty in server-rendered HTML. It now lives here and is rendered on the
+// server by page.tsx; the motion scripts still enhance whatever DOM exists.
 
-  const svgURI = (svg) => 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+const svgDataUri = (svg: string) => 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 
-  /* 01 — SALUT.AE · navy + gold ads/GA4 dashboard */
-  const salut = svgURI(`
+export type StatusKind = 'live' | 'build' | 'beta';
+
+export type CaseStudy = {
+  num: string;
+  tag: string;
+  title: string;
+  status: string;
+  statusKind: StatusKind;
+  tagline: string;
+  desc: string;
+  chips: string[];
+  url: string;
+  href: string;
+  img: string;
+};
+
+/* 01 — SALUT.AE · navy + gold ads/GA4 dashboard */
+const salut = svgDataUri(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 550" preserveAspectRatio="xMidYMid slice" font-family="Inter, sans-serif">
   <rect width="800" height="550" fill="#0a1430"/>
   <rect x="0" y="0" width="190" height="550" fill="#0c1838"/>
@@ -43,8 +61,8 @@
   <circle cx="742" cy="250" r="5" fill="#0f1f44" stroke="#E8B341" stroke-width="2.5"/>
 </svg>`);
 
-  /* 02 — NESHAT.AE · tournament bracket with "N" mark */
-  const neshat = svgURI(`
+/* 02 — NESHAT.AE · tournament bracket with "N" mark */
+const neshat = svgDataUri(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 550" preserveAspectRatio="xMidYMid slice" font-family="Inter, sans-serif">
   <rect width="800" height="550" fill="#0b1020"/>
   <g stroke="#2DD4BF" stroke-width="9" fill="none" opacity=".9">
@@ -54,7 +72,6 @@
   <text x="138" y="92" font-size="22" font-weight="700" fill="#fff">Neshat</text>
   <text x="138" y="116" font-size="12" fill="#6b86a8" letter-spacing="2">TOURNAMENT CONTROL · LIVE</text>
   <g font-family="JetBrains Mono, monospace" font-size="12">
-    <!-- round 1 -->
     <g>
       <rect x="40" y="180" width="170" height="40" rx="8" fill="#101a31" stroke="rgba(45,212,191,.5)"/>
       <text x="56" y="205" fill="#e6f7f4">Al Habtoor</text><text x="190" y="205" fill="#2DD4BF" text-anchor="end">6</text>
@@ -65,14 +82,12 @@
       <rect x="40" y="352" width="170" height="40" rx="8" fill="#101a31" stroke="rgba(45,212,191,.5)"/>
       <text x="56" y="377" fill="#e6f7f4">JBR United</text><text x="190" y="377" fill="#2DD4BF" text-anchor="end">6</text>
     </g>
-    <!-- connectors -->
     <g stroke="rgba(45,212,191,.35)" stroke-width="2" fill="none">
       <path d="M210 200 H250 V260 H290"/>
       <path d="M210 320 H250 V260"/>
       <path d="M210 372 H250 V436 H290"/>
       <path d="M210 252 H250"/>
     </g>
-    <!-- semis -->
     <g>
       <rect x="290" y="240" width="170" height="40" rx="8" fill="#101a31" stroke="rgba(45,212,191,.5)"/>
       <text x="306" y="265" fill="#e6f7f4">Al Habtoor</text>
@@ -81,22 +96,20 @@
     </g>
     <path d="M460 260 H505 V348 H560" stroke="rgba(45,212,191,.35)" stroke-width="2" fill="none"/>
     <path d="M460 436 H505 V348" stroke="rgba(45,212,191,.35)" stroke-width="2" fill="none"/>
-    <!-- final -->
     <rect x="560" y="324" width="190" height="52" rx="10" fill="rgba(45,212,191,.12)" stroke="#2DD4BF"/>
     <text x="578" y="346" font-size="9" fill="#2DD4BF" letter-spacing="2">FINAL · COURT 1</text>
     <text x="578" y="366" fill="#fff">Al Habtoor</text>
   </g>
 </svg>`);
 
-  /* 03 — POOK · teal / court black / net white booking */
-  const pook = svgURI(`
+/* 03 — POOK · teal / court black / net white booking */
+const pook = svgDataUri(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 550" preserveAspectRatio="xMidYMid slice" font-family="Inter, sans-serif">
   <rect width="800" height="550" fill="#0b0f0f"/>
   <circle cx="36" cy="46" r="13" fill="#16C2A8"/>
   <text x="30" y="52" font-size="17" font-weight="800" fill="#0b0f0f">P</text>
   <text x="60" y="52" font-size="18" font-weight="700" fill="#fff">POOK</text>
   <text x="690" y="52" font-size="11" fill="#16C2A8" text-anchor="end" letter-spacing="2">FIND A GAME</text>
-  <!-- court -->
   <rect x="40" y="86" width="360" height="430" rx="14" fill="#0e1413" stroke="rgba(22,194,168,.3)"/>
   <rect x="74" y="120" width="292" height="362" rx="6" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2"/>
   <line x1="74" y1="301" x2="366" y2="301" stroke="#16C2A8" stroke-width="2.5"/>
@@ -105,7 +118,6 @@
   <circle cx="290" cy="200" r="16" fill="#16C2A8"/><text x="290" y="205" font-size="12" font-weight="700" fill="#06100e" text-anchor="middle">5.0</text>
   <circle cx="160" cy="400" r="16" fill="rgba(255,255,255,.85)"/><text x="160" y="405" font-size="12" font-weight="700" fill="#06100e" text-anchor="middle">4.8</text>
   <circle cx="300" cy="420" r="16" fill="rgba(255,255,255,.4)" stroke="#16C2A8" stroke-dasharray="3 3"/><text x="300" y="425" font-size="12" fill="#fff" text-anchor="middle">+</text>
-  <!-- right panel -->
   <text x="430" y="120" font-size="13" font-weight="600" fill="#fff">Padel · Tonight 8:00 PM</text>
   <g>
     <rect x="430" y="138" width="330" height="74" rx="12" fill="#0e1413" stroke="rgba(22,194,168,.25)"/>
@@ -128,8 +140,8 @@
   <text x="448" y="478" font-size="10" fill="#566b66">1.0</text><text x="734" y="478" font-size="10" fill="#566b66" text-anchor="end">7.0</text>
 </svg>`);
 
-  /* 04 — COUNSEL · violet AI model routing */
-  const counsel = svgURI(`
+/* 04 — COUNSEL · violet AI model routing */
+const counsel = svgDataUri(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 550" preserveAspectRatio="xMidYMid slice" font-family="Inter, sans-serif">
   <rect width="800" height="550" fill="#0a0a12"/>
   <circle cx="36" cy="44" r="10" fill="#8B5CF6"/>
@@ -138,7 +150,6 @@
   <rect x="40" y="86" width="720" height="74" rx="12" fill="#11111f" stroke="rgba(139,92,246,.3)"/>
   <text x="62" y="120" font-size="13" fill="#cfc8ff">Draft a VAT-compliant invoice summary for a Dubai SME…</text>
   <text x="62" y="144" font-size="11" fill="#6f6a8f">Task type detected: financial · routing to best model</text>
-  <!-- routing nodes -->
   <text x="62" y="200" font-size="11" fill="#6f6a8f" letter-spacing="2">PER-ROLE MODEL ROUTING</text>
   <g font-size="12">
     <rect x="40" y="220" width="220" height="120" rx="12" fill="#11111f" stroke="rgba(255,255,255,.07)"/>
@@ -165,8 +176,8 @@
   <text x="137" y="491" font-size="12" font-weight="700" fill="#0a0a12" text-anchor="middle">Copy result</text>
 </svg>`);
 
-  /* 05 — AYVAN.APP · electric indigo CRM pipeline */
-  const ayvan = svgURI(`
+/* 05 — AYVAN.APP · electric indigo CRM pipeline */
+const ayvan = svgDataUri(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 550" preserveAspectRatio="xMidYMid slice" font-family="Inter, sans-serif">
   <rect width="800" height="550" fill="#0a0a16"/>
   <rect x="0" y="0" width="800" height="62" fill="#0d0d1f"/>
@@ -175,7 +186,6 @@
   <text x="180" y="37" font-size="11" fill="#8b8bf5">Pipeline</text>
   <text x="746" y="37" font-size="10" fill="#6f6f9c" text-anchor="end" letter-spacing="1">n8n · 6 flows running</text>
   <g font-size="11" font-family="Inter, sans-serif">
-    <!-- columns -->
     <text x="40" y="96" fill="#8b8bf5" letter-spacing="1">NEW LEADS</text><text x="190" y="96" fill="#4F46E5" text-anchor="end">12</text>
     <text x="290" y="96" fill="#8b8bf5" letter-spacing="1">QUALIFIED</text><text x="440" y="96" fill="#4F46E5" text-anchor="end">7</text>
     <text x="540" y="96" fill="#8b8bf5" letter-spacing="1">WON</text><text x="760" y="96" fill="#4F46E5" text-anchor="end">04</text>
@@ -214,75 +224,62 @@
   </g>
 </svg>`);
 
-  const cases = [
-    {
-      num:'01', tag:'Marketing Dashboard', title:'Salut.ae',
-      status:'In Build', statusKind:'build',
-      tagline:'Know exactly what your ads are worth.',
-      desc:'Salut.ae pulls Google Ads and GA4 into one clear dashboard, so you can see which campaigns drive revenue and which just burn budget. Keyword, segment, and competitive views sit alongside an AI Optimization Hub that turns your data into next steps.',
-      chips:['Account Overview','Campaign Performance','Keyword Explorer','Competitive Insights','GA4 Cross-Channel','AI Optimization Hub'],
-      url:'ads-dashboard-weld.vercel.app', href:'https://ads-dashboard-weld.vercel.app', img: salut
-    },
-    {
-      num:'02', tag:'Tournament Management', title:'Neshat.ae',
-      status:'Live', statusKind:'live',
-      tagline:'Run a tournament without the chaos.',
-      desc:'Neshat handles registration, draws, scheduling, and live results end to end, across multiple sports. Organisers get automated brackets and a single place to manage every match — so the day runs itself and players always know what\u2019s next.',
-      chips:['Registration','Automated Brackets','Scheduling','Live Results','Multi-sport','AED Tiers'],
-      url:'neshat.ae', href:'https://neshat.ae', img: neshat
-    },
-    {
-      num:'03', tag:'Sports Booking + Club', title:'POOK',
-      status:'In Build', statusKind:'build',
-      tagline:'Play more. Manage less.',
-      desc:'POOK connects players with courts and with each other — book a venue, find a match at your level, and play across multiple sports. For clubs and venues, pook.club adds the booking, payments, and member tools to run the whole operation.',
-      chips:['Venue Booking','Player Matching','1.0\u20137.0 Skill Rating','Club Management','Stripe Billing','WhatsApp API'],
-      url:'pook.ae · pook.club', href:'https://pook.ae', img: pook
-    },
-    {
-      num:'04', tag:'AI SaaS', title:'Counsel',
-      status:'Beta', statusKind:'beta',
-      tagline:'The right AI model for every job — with your own keys.',
-      desc:'Counsel is an AI SaaS that routes each task to the model best suited for it, with bring-your-own-key support and a UAE-first build. Per-role model routing means every task lands on the model that handles it best.',
-      chips:['Per-role Routing','BYOK','Multi-model','UAE-first'],
-      url:'counsel-saas.vercel.app', href:'https://counsel-saas.vercel.app', img: counsel
-    },
-    {
-      num:'05', tag:'CRM for UAE SMEs', title:'Ayvan.app',
-      status:'In Build', statusKind:'build',
-      tagline:'A CRM that does the busywork for you.',
-      desc:'Ayvan is a CRM built for UAE small and medium businesses, with automation woven in so leads, follow-ups, and updates move on their own. It brings your tools into one place and keeps your pipeline current — without the manual data entry.',
-      chips:['Lead Pipeline','Automated Follow-ups','n8n Automation','Unified Tools'],
-      url:'ayvan.app', href:'https://ayvan.app', img: ayvan
-    },
-  ];
+export const CASES: CaseStudy[] = [
+  {
+    num: '01', tag: 'Marketing Dashboard', title: 'Salut.ae',
+    status: 'In Build', statusKind: 'build',
+    tagline: 'Know exactly what your ads are worth.',
+    desc: 'Salut.ae pulls Google Ads and GA4 into one clear dashboard, so you can see which campaigns drive revenue and which just burn budget. Keyword, segment, and competitive views sit alongside an AI Optimization Hub that turns your data into next steps.',
+    chips: ['Account Overview', 'Campaign Performance', 'Keyword Explorer', 'Competitive Insights', 'GA4 Cross-Channel', 'AI Optimization Hub'],
+    url: 'ads-dashboard-weld.vercel.app', href: 'https://ads-dashboard-weld.vercel.app', img: salut,
+  },
+  {
+    num: '02', tag: 'Tournament Management', title: 'Neshat.ae',
+    status: 'Live', statusKind: 'live',
+    tagline: 'Run a tournament without the chaos.',
+    desc: 'Neshat handles registration, draws, scheduling, and live results end to end, across multiple sports. Organisers get automated brackets and a single place to manage every match — so the day runs itself and players always know what\u2019s next.',
+    chips: ['Registration', 'Automated Brackets', 'Scheduling', 'Live Results', 'Multi-sport', 'AED Tiers'],
+    url: 'neshat.ae', href: 'https://neshat.ae', img: neshat,
+  },
+  {
+    num: '03', tag: 'Sports Booking + Club', title: 'POOK',
+    status: 'In Build', statusKind: 'build',
+    tagline: 'Play more. Manage less.',
+    desc: 'POOK connects players with courts and with each other — book a venue, find a match at your level, and play across multiple sports. For clubs and venues, pook.club adds the booking, payments, and member tools to run the whole operation.',
+    chips: ['Venue Booking', 'Player Matching', '1.0\u20137.0 Skill Rating', 'Club Management', 'Stripe Billing', 'WhatsApp API'],
+    url: 'pook.ae · pook.club', href: 'https://pook.ae', img: pook,
+  },
+  {
+    num: '04', tag: 'AI SaaS', title: 'Counsel',
+    status: 'Beta', statusKind: 'beta',
+    tagline: 'The right AI model for every job — with your own keys.',
+    desc: 'Counsel is an AI SaaS that routes each task to the model best suited for it, with bring-your-own-key support and a UAE-first build. Per-role model routing means every task lands on the model that handles it best.',
+    chips: ['Per-role Routing', 'BYOK', 'Multi-model', 'UAE-first'],
+    url: 'counsel-saas.vercel.app', href: 'https://counsel-saas.vercel.app', img: counsel,
+  },
+  {
+    num: '05', tag: 'CRM for UAE SMEs', title: 'Ayvan.app',
+    status: 'In Build', statusKind: 'build',
+    tagline: 'A CRM that does the busywork for you.',
+    desc: 'Ayvan is a CRM built for UAE small and medium businesses, with automation woven in so leads, follow-ups, and updates move on their own. It brings your tools into one place and keeps your pipeline current — without the manual data entry.',
+    chips: ['Lead Pipeline', 'Automated Follow-ups', 'n8n Automation', 'Unified Tools'],
+    url: 'ayvan.app', href: 'https://ayvan.app', img: ayvan,
+  },
+];
 
-  list.innerHTML = cases.map((c, i) => `
-    <article class="case ${i % 2 ? 'flip' : ''}">
-      <div class="caseInfo" data-motion-text>
-        <ul>
-          <li class="ctag motion-piece"><span class="num">${c.num}</span> · ${c.tag} <span class="status ${c.statusKind}">${c.status}</span></li>
-          <li class="motion-piece"><h3>${c.title}</h3></li>
-          <li class="motion-piece"><p class="tagline">${c.tagline}</p></li>
-          <li class="motion-piece"><p>${c.desc}</p></li>
-          <li class="motion-piece"><div class="chips">${c.chips.map(ch=>`<span class="chip">${ch}</span>`).join('')}</div></li>
-          <li class="motion-piece">
-            <a class="btn" href="${c.href}" target="_blank" rel="noopener" data-cursor-text="Open ${c.title}">
-              <span class="br tl"></span><span class="br tr"></span><span class="br bl"></span><span class="br br2"></span>
-              <span>Visit ${c.url}</span><span>↗</span>
-            </a>
-          </li>
-        </ul>
-      </div>
-      <div class="imageMask" data-cursor-text="Open preview">
-        <div class="frame-bar"><i></i><i></i><i></i><span class="url">${c.url}</span></div>
-        <div class="c-glitch">
-          <div class="c-glitch__img" style='background-image:url("${c.img}")'></div>
-          <div class="c-glitch__img" style='background-image:url("${c.img}")'></div>
-          <div class="c-glitch__img" style='background-image:url("${c.img}")'></div>
-          <div class="c-glitch__img" style='background-image:url("${c.img}")'></div>
-        </div>
-      </div>
-    </article>
-  `).join('');
-})();
+export type Capability = { num: string; title: string; desc: string };
+
+export const CAPABILITIES: Capability[] = [
+  { num: '01', title: 'Full-Stack Product Development', desc: 'Web apps and SaaS, built to ship — React, Next.js, FastAPI, Supabase, deployed on Vercel, Railway, and AWS.' },
+  { num: '02', title: 'Marketing Analytics & Performance', desc: 'Google Ads + GA4 dashboards, campaign reporting, keyword and competitive analysis, plus SEO and GEO for AI-powered search.' },
+  { num: '03', title: 'Integrations & Messaging', desc: 'Stripe billing and subscriptions, WhatsApp Business API, OAuth, and custom API integrations that tie your stack together.' },
+  { num: '04', title: 'Brand & Product Design', desc: 'Brand identity, design systems, and UI/UX for digital products that look as good as they work.' },
+];
+
+export const AUTOMATION = {
+  num: '05',
+  kicker: 'n8n Automation & AI Workflows',
+  title: 'Automate the work nobody wants to do.',
+  desc: 'We build n8n automation workflows that connect your apps and run your repetitive processes — lead capture, reporting, notifications, data sync — on autopilot. Pair it with AI agents and multi-model routing for workflows that think, not just trigger.',
+  points: ['Lead capture & enrichment', 'Automated reporting', 'Email & WhatsApp pipelines', 'AI agents · multi-model routing'],
+};

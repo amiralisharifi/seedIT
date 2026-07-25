@@ -1,7 +1,8 @@
-// Final init — refresh motion list after dynamic content (cases, exp) inserted
+// Final init — make sure every [data-motion-text] block is word-split and the
+// motion list is refreshed. The cases + capabilities markup is now rendered
+// server-side (see new/landing-data.ts), so motion.js already splits it on
+// load; this pass is a safety net that also covers any late/dynamic content.
 (function(){
-  // cases.js & exp.js have already injected DOM by the time we load.
-  // Trigger motion split + refresh on any newly-injected [data-motion-text].
   document.querySelectorAll('[data-motion-text]').forEach(el => {
     if (el.dataset.split) return;
     el.dataset.split = '1';

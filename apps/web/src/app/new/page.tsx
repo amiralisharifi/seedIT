@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
 import Script from 'next/script';
+import { CASES, CAPABILITIES, AUTOMATION } from './landing-data';
 import './landing.css';
 
 export const metadata: Metadata = {
@@ -46,17 +48,58 @@ const TECH = [
 const NAV_WAVE_HEIGHTS = ['60%', '90%', '75%', '100%', '65%', '85%', '55%'];
 const NAV_WAVE_DELAYS = ['0s', '.12s', '.24s', '.36s', '.48s', '.6s', '.72s'];
 
+/**
+ * The mono button with the four animated corner brackets + sweep. The markup
+ * (4 `.br` spans + label + icon) is identical everywhere and the CSS keys off
+ * that exact child structure, so it lives in one place instead of being copied
+ * per call site.
+ */
+function BracketButton({
+  href,
+  children,
+  icon = '↗',
+  cursorText,
+  className,
+  external = false,
+}: {
+  href: string;
+  children: ReactNode;
+  icon?: string;
+  cursorText?: string;
+  className?: string;
+  external?: boolean;
+}) {
+  return (
+    <a
+      className={className ? `btn ${className}` : 'btn'}
+      href={href}
+      data-cursor-text={cursorText}
+      {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+    >
+      <span className="br tl" />
+      <span className="br tr" />
+      <span className="br bl" />
+      <span className="br br2" />
+      <span>{children}</span>
+      <span>{icon}</span>
+    </a>
+  );
+}
+
 export default function LandingPreviewPage() {
   return (
     <>
       {/*
         Inter is added on this page only — root layout already loads
         JetBrains Mono. Rendered here so it stays scoped to /new and the
-        root /, /blog etc. don't pay for it.
+        root /, /blog etc. don't pay for it. Only the weights this page
+        actually uses for body copy are requested (300/400/500).
       */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       <link
         rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap"
       />
 
       {/* z 60 — laptop intro (scroll-scrubbed video) */}
@@ -120,14 +163,9 @@ export default function LandingPreviewPage() {
             <b className="accent">SEED</b> <b>IT</b>
           </h1>
           <p>{HERO_COPY}</p>
-          <a className="btn" href="#work" data-cursor-text="See what we build">
-            <span className="br tl" />
-            <span className="br tr" />
-            <span className="br bl" />
-            <span className="br br2" />
-            <span>What we build</span>
-            <span>↓</span>
-          </a>
+          <BracketButton href="#work" cursorText="See what we build" icon="↓">
+            What we build
+          </BracketButton>
         </div>
       </div>
 
@@ -204,26 +242,16 @@ export default function LandingPreviewPage() {
             <p className="bio motion-piece">{STACK_BIO}</p>
 
             <div className="actions">
-              <a
-                className="btn motion-piece"
+              <BracketButton
+                className="motion-piece"
                 href="#contact"
-                data-cursor-text="Start a project"
+                cursorText="Start a project"
               >
-                <span className="br tl" />
-                <span className="br tr" />
-                <span className="br bl" />
-                <span className="br br2" />
-                <span>Start a project</span>
-                <span>↗</span>
-              </a>
-              <a className="btn motion-piece" href="#work" data-cursor-text="View products">
-                <span className="br tl" />
-                <span className="br tr" />
-                <span className="br bl" />
-                <span className="br br2" />
-                <span>View our products</span>
-                <span>↗</span>
-              </a>
+                Start a project
+              </BracketButton>
+              <BracketButton className="motion-piece" href="#work" cursorText="View products">
+                View our products
+              </BracketButton>
             </div>
           </div>
         </section>
@@ -265,7 +293,60 @@ export default function LandingPreviewPage() {
               })}
             </div>
 
-            <div className="caseList" id="case-list" />
+            <div className="caseList" id="case-list">
+              {CASES.map((c, i) => (
+                <article key={c.title} className={`case ${i % 2 ? 'flip' : ''}`}>
+                  <div className="caseInfo" data-motion-text="">
+                    <ul>
+                      <li className="ctag motion-piece">
+                        <span className="num">{c.num}</span> · {c.tag}{' '}
+                        <span className={`status ${c.statusKind}`}>{c.status}</span>
+                      </li>
+                      <li className="motion-piece">
+                        <h3>{c.title}</h3>
+                      </li>
+                      <li className="motion-piece">
+                        <p className="tagline">{c.tagline}</p>
+                      </li>
+                      <li className="motion-piece">
+                        <p>{c.desc}</p>
+                      </li>
+                      <li className="motion-piece">
+                        <div className="chips">
+                          {c.chips.map((ch) => (
+                            <span key={ch} className="chip">
+                              {ch}
+                            </span>
+                          ))}
+                        </div>
+                      </li>
+                      <li className="motion-piece">
+                        <BracketButton external href={c.href} cursorText={`Open ${c.title}`}>
+                          Visit {c.url}
+                        </BracketButton>
+                      </li>
+                    </ul>
+                  </div>
+                  <div className="imageMask" data-cursor-text="Open preview">
+                    <div className="frame-bar">
+                      <i />
+                      <i />
+                      <i />
+                      <span className="url">{c.url}</span>
+                    </div>
+                    <div className="c-glitch">
+                      {[0, 1, 2, 3].map((k) => (
+                        <div
+                          key={k}
+                          className="c-glitch__img"
+                          style={{ backgroundImage: `url("${c.img}")` }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -279,7 +360,59 @@ export default function LandingPreviewPage() {
                 <span className="out">Shipped</span> for UAE business.
               </h2>
             </div>
-            <div className="exp-grid" id="exp-grid" />
+            <div className="exp-grid" id="exp-grid">
+              <div className="col" data-motion-text="">
+                <h4 className="motion-piece">
+                  <b>— Capabilities</b>
+                  <span>{String(CAPABILITIES.length).padStart(2, '0')}</span>
+                </h4>
+                {CAPABILITIES.slice(0, 2).map((it) => (
+                  <div key={it.num} className="item motion-piece">
+                    <div className="nm">
+                      <span>{it.num} |</span>
+                    </div>
+                    <div className="title">{it.title}</div>
+                    <div className="desc">{it.desc}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="col" data-motion-text="">
+                <h4 className="motion-piece">
+                  <b>— Services</b>
+                  <span>{'\u00A0'}</span>
+                </h4>
+                {CAPABILITIES.slice(2).map((it) => (
+                  <div key={it.num} className="item motion-piece">
+                    <div className="nm">
+                      <span>{it.num} |</span>
+                    </div>
+                    <div className="title">{it.title}</div>
+                    <div className="desc">{it.desc}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="col feature" data-motion-text="">
+                <h4 className="motion-piece">
+                  <b>— Featured</b>
+                  <span>{AUTOMATION.num}</span>
+                </h4>
+                <div className="item motion-piece autoCard">
+                  <div className="nm">
+                    <span className="autoKicker">{AUTOMATION.kicker}</span>
+                  </div>
+                  <div className="title autoTitle">{AUTOMATION.title}</div>
+                  <div className="desc">{AUTOMATION.desc}</div>
+                  <ul className="autoList">
+                    {AUTOMATION.points.map((p) => (
+                      <li key={p}>{p}</li>
+                    ))}
+                  </ul>
+                  <a className="lnk" href="#contact" data-cursor-text="Talk automation">
+                    Automate a workflow ↗
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -299,28 +432,12 @@ export default function LandingPreviewPage() {
               className="actions motion-piece"
               style={{ justifyContent: 'center', marginTop: 32 }}
             >
-              <a className="btn" href={`mailto:${CONTACT_EMAIL}`} data-cursor-text="Send a note">
-                <span className="br tl" />
-                <span className="br tr" />
-                <span className="br bl" />
-                <span className="br br2" />
-                <span>{CONTACT_EMAIL}</span>
-                <span>↗</span>
-              </a>
-              <a
-                className="btn"
-                href={SITE}
-                target="_blank"
-                rel="noopener noreferrer"
-                data-cursor-text="Visit site"
-              >
-                <span className="br tl" />
-                <span className="br tr" />
-                <span className="br bl" />
-                <span className="br br2" />
-                <span>seedit.ae</span>
-                <span>↗</span>
-              </a>
+              <BracketButton href={`mailto:${CONTACT_EMAIL}`} cursorText="Send a note">
+                {CONTACT_EMAIL}
+              </BracketButton>
+              <BracketButton external href={SITE} cursorText="Visit site">
+                seedit.ae
+              </BracketButton>
             </div>
           </div>
         </section>
@@ -353,8 +470,10 @@ export default function LandingPreviewPage() {
 
       {/*
         Scripts after hydration in source order.
-        Lenis from CDN (v2 source uses unpkg). The 9 v2 modules each have an
-        IIFE that mutates the DOM by ID — safe to mount after React renders.
+        Lenis from CDN (v2 source uses unpkg). Each v2 module is an IIFE that
+        mutates the DOM by ID — safe to mount after React renders. The cases +
+        capabilities markup is now server-rendered (see landing-data.ts), so
+        the old cases.js / exp.js injectors are gone.
       */}
       <Script
         src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"
@@ -365,8 +484,6 @@ export default function LandingPreviewPage() {
       <Script src="/landing/v2/loader.js" strategy="afterInteractive" />
       <Script src="/landing/v2/intro.js" strategy="afterInteractive" />
       <Script src="/landing/v2/bgcanvas.js" strategy="afterInteractive" />
-      <Script src="/landing/v2/cases.js" strategy="afterInteractive" />
-      <Script src="/landing/v2/exp.js" strategy="afterInteractive" />
       <Script src="/landing/v2/motion.js" strategy="afterInteractive" />
       <Script src="/landing/v2/scroll.js" strategy="afterInteractive" />
       <Script src="/landing/v2/init.js" strategy="afterInteractive" />

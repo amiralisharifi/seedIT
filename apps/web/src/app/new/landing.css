@@ -3,14 +3,24 @@
    No more self-hosted woff2. */
 
   :root{
+    /* dark neutral ramp */
     --bg:#0a0a0a;
+    --bg-deep:#070707;
     --surface:#111111;
+    --surface-2:#0f0f0f;
+    --surface-3:#101010;
+    --surface-4:#2a2a2a;
     --text-primary:#ffffff;
-    --text-muted:rgba(255,255,255,0.45);
+    /* 0.6 alpha over #0a0a0a ≈ 7:1 — clears WCAG AA for the 14px body copy
+       that uses this token (bio, case descriptions, tags, info). */
+    --text-muted:rgba(255,255,255,0.6);
     --text-dim:rgba(255,255,255,0.16);
     --border:rgba(255,255,255,0.07);
     --border-light:rgba(255,255,255,0.10);
     --accent:#7CFC00;
+    /* accent as raw channels so translucent accents can read from one source:
+       rgba(var(--accent-rgb), a). */
+    --accent-rgb:124,252,0;
     --font-mono:'JetBrains Mono', ui-monospace, monospace;
     --font-body:'Inter', sans-serif;
 
@@ -22,26 +32,37 @@
   }
 
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{background:#0a0a0a;color:#fff;font-family:var(--font-body);-webkit-font-smoothing:antialiased;font-weight:300}
+  html,body{background:var(--bg);color:#fff;font-family:var(--font-body);-webkit-font-smoothing:antialiased;font-weight:300}
   body{overflow-x:hidden}
   a{color:inherit;text-decoration:none}
   button{font-family:inherit;background:none;border:none;color:inherit;cursor:pointer}
+
+  /* Keyboard focus: the custom cursor hides the native pointer, so a strong,
+     always-visible focus ring is essential for anyone navigating by keyboard. */
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+  .btn:focus-visible{outline-offset:4px}
 
   /* hide native cursor on desktop when our custom cursor is active */
   body.cursor-active, body.cursor-active *{cursor:none!important}
   @media (max-width:900px){body.cursor-active,body.cursor-active *{cursor:auto!important}}
 
   /* â”€â”€ Loader (z 9999): 18Ã—18 pixel dissolve â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-  .loader{position:fixed;inset:0;z-index:9999;background:#0f0f0f;display:grid;grid-template-columns:repeat(18,1fr);grid-template-rows:repeat(18,1fr);pointer-events:none}
+  .loader{position:fixed;inset:0;z-index:9999;background:var(--surface-2);display:grid;grid-template-columns:repeat(18,1fr);grid-template-rows:repeat(18,1fr);pointer-events:none}
   .loader.gone{pointer-events:none}
-  .loader .blk{background:#111;transition:opacity .4s ease}
+  .loader .blk{background:var(--surface);transition:opacity .4s ease}
   .loader .center{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.2em;font-size:12px;transition:opacity .6s cubic-bezier(.16,1,.3,1),filter .6s cubic-bezier(.16,1,.3,1)}
   .loader .center .mk{display:flex;align-items:center;gap:10px}
   .loader .center .bar{width:120px;height:1px;background:rgba(255,255,255,.12);margin-top:18px;overflow:hidden;position:relative}
-  .loader .center .bar i{position:absolute;left:0;top:0;height:100%;width:0;background:#7CFC00;transition:width .6s ease}
+  .loader .center .bar i{position:absolute;left:0;top:0;height:100%;width:0;background:var(--accent);transition:width .6s ease}
+  /* Failsafe: if loader.js never runs (script blocked, JS error, JS disabled),
+     don't leave this opaque overlay covering the page forever. Auto-reveal the
+     page after 8s. Normal operation removes the loader (display:none) in ~2–4s,
+     well before this fires, so it never interferes. */
+  .loader{animation:loaderFailsafe .6s ease 8s forwards}
+  @keyframes loaderFailsafe{to{opacity:0;visibility:hidden}}
 
   /* â”€â”€ Background video (z 0) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-  #bg-video-stack{position:fixed;inset:0;z-index:0;overflow:hidden;background:#070707}
+  #bg-video-stack{position:fixed;inset:0;z-index:0;overflow:hidden;background:var(--bg-deep)}
   #bg-video-stack canvas{width:100%;height:100%;display:block;opacity:.3}
 
   /* â”€â”€ WebGL root (z 1) â€” hero 3D shapes disabled â”€â”€â”€â”€â”€â”€â”€ */
@@ -80,14 +101,22 @@
   .edge-blur__top,.edge-blur__bottom{position:absolute;left:0;width:100%;height:80px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
   .edge-blur__top{top:0;mask-image:linear-gradient(black 0%,rgba(0,0,0,0.92) 30%,transparent 100%);-webkit-mask-image:linear-gradient(black 0%,rgba(0,0,0,0.92) 30%,transparent 100%)}
   .edge-blur__bottom{bottom:0;mask-image:linear-gradient(to top,black 0%,rgba(0,0,0,0.92) 30%,transparent 100%);-webkit-mask-image:linear-gradient(to top,black 0%,rgba(0,0,0,0.92) 30%,transparent 100%)}
+  /* backdrop-filter is the most expensive effect to recompute while content
+     scrolls behind it, and mobile GPUs suffer most. Swap the two edge bars for
+     a plain dark scrim on small screens. */
+  @media (max-width:760px){
+    .edge-blur__top,.edge-blur__bottom{backdrop-filter:none;-webkit-backdrop-filter:none;mask-image:none;-webkit-mask-image:none}
+    .edge-blur__top{background:linear-gradient(var(--bg),transparent)}
+    .edge-blur__bottom{background:linear-gradient(to top,var(--bg),transparent)}
+  }
 
   /* â”€â”€ Noise (z 99) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-  .noise{position:fixed;inset:-50%;z-index:99;pointer-events:none;opacity:.09;mix-blend-mode:overlay;
+  /* Static film grain. This was an infinite steps() translate that forced a
+     full-screen mix-blend-mode:overlay REPAINT ~8×/second, forever — a real
+     battery/CPU drain. The sibling site at / uses a static grain too; the
+     shimmer isn't worth the constant recompositing. */
+  .noise{position:fixed;inset:0;z-index:99;pointer-events:none;opacity:.09;mix-blend-mode:overlay;
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-    animation:noise .12s steps(1) infinite;
-  }
-  @keyframes noise{
-    0%{transform:translate(0,0)}10%{transform:translate(-5%,-3%)}20%{transform:translate(-12%,3%)}30%{transform:translate(7%,-9%)}40%{transform:translate(-5%,12%)}50%{transform:translate(-13%,7%)}60%{transform:translate(7%,5%)}70%{transform:translate(-7%,-3%)}80%{transform:translate(11%,9%)}90%{transform:translate(2%,-12%)}100%{transform:translate(0,0)}
   }
 
   /* Intro laptop scrub (z 60) â€” 400vh of body scroll is reserved for it */  .intro-stage{position:fixed;inset:0;z-index:60;background:#000;overflow:hidden;pointer-events:none;will-change:opacity}
@@ -110,27 +139,27 @@
     z-index:70;
     display:flex;align-items:center;gap:11px;
     padding:11px 18px 11px 15px;
-    border:1px solid rgba(124,252,0,.45);
+    border:1px solid rgba(var(--accent-rgb),.45);
     background:rgba(10,10,10,.55);
     backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
     border-radius:999px;
     cursor:pointer;color:#fff;
     font-family:var(--font-mono);font-size:11px;font-weight:500;
     letter-spacing:.18em;text-transform:uppercase;
-    box-shadow:0 6px 30px rgba(124,252,0,.16);
+    box-shadow:0 6px 30px rgba(var(--accent-rgb),.16);
     animation:epBob 2.4s ease-in-out infinite;
     transition:opacity .4s ease, transform .4s ease, border-color .25s ease, background .25s ease;
   }
-  .enter-pill:hover{border-color:rgba(124,252,0,.9);background:rgba(124,252,0,.10)}
+  .enter-pill:hover{border-color:rgba(var(--accent-rgb),.9);background:rgba(var(--accent-rgb),.10)}
   .enter-pill .ep-dot{
     width:7px;height:7px;border-radius:50%;background:var(--accent);
-    box-shadow:0 0 0 0 rgba(124,252,0,.7);
+    box-shadow:0 0 0 0 rgba(var(--accent-rgb),.7);
     animation:epPulse 1.6s ease-out infinite;
   }
   .enter-pill .ep-arrow{width:14px;height:14px;color:var(--accent)}
   .enter-pill.hidden{opacity:0;pointer-events:none;transform:translateX(-50%) translateY(-14px)}
   @keyframes epBob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(5px)}}
-  @keyframes epPulse{0%{box-shadow:0 0 0 0 rgba(124,252,0,.55)}70%{box-shadow:0 0 0 9px rgba(124,252,0,0)}100%{box-shadow:0 0 0 0 rgba(124,252,0,0)}}
+  @keyframes epPulse{0%{box-shadow:0 0 0 0 rgba(var(--accent-rgb),.55)}70%{box-shadow:0 0 0 9px rgba(var(--accent-rgb),0)}100%{box-shadow:0 0 0 0 rgba(var(--accent-rgb),0)}}
   @media (max-width:520px){.enter-pill{font-size:10px;padding:9px 14px 9px 12px}}
 
   /* Frame screen (z 999) */
@@ -161,9 +190,9 @@
   /* subtle accent pulse on the hero text while locked */
   body.hero-locked .hero-inner h1{animation:heroPulse 1.8s ease-out 1 forwards}
   @keyframes heroPulse{
-    0%{text-shadow:0 0 0 rgba(124,252,0,0)}
-    35%{text-shadow:0 0 28px rgba(124,252,0,.35)}
-    100%{text-shadow:0 0 0 rgba(124,252,0,0)}
+    0%{text-shadow:0 0 0 rgba(var(--accent-rgb),0)}
+    35%{text-shadow:0 0 28px rgba(var(--accent-rgb),.35)}
+    100%{text-shadow:0 0 0 rgba(var(--accent-rgb),0)}
   }
 
   /* â”€â”€ Buttons (mono caps with corner brackets + sweep) â”€â”€â”€â”€â”€â”€â”€ */
@@ -198,9 +227,16 @@
     0%,100%{transform:scaleY(1)}
     50%{transform:scaleY(.35)}
   }
+  /* Mobile nav: instead of hiding every link but Contact, keep the whole menu
+     reachable as a compact centered strip that wraps under the logo. No JS /
+     hamburger needed for five in-page anchors. */
   @media (max-width:760px){
-    .nav-links a:not(.cv){display:none}
     .nav-wave{display:none}
+    .nav-inner{flex-wrap:wrap;justify-content:center;gap:2px 0}
+    .nav-logo{flex:1 1 100%;justify-content:center}
+    .nav-links{flex-wrap:wrap;justify-content:center;gap:0 2px}
+    .nav-links a{padding:10px 10px;font-size:10px;letter-spacing:.1em}
+    .nav-links .sup{display:none}
   }
 
   /* hero spacer â€” gives the fixed hero room to be HELD then fade out */
@@ -218,11 +254,15 @@
   .display{font-family:var(--font-mono);font-weight:700;font-size:clamp(36px,5.8vw,80px);line-height:1.05;letter-spacing:-.015em;text-transform:uppercase;text-wrap:balance}
   .display .accent{color:var(--accent)}
   .display .out{-webkit-text-stroke:1.4px #fff;color:transparent}
-  .display .ic{display:inline-grid;place-items:center;vertical-align:-.18em;width:1.1em;height:1.1em;border-radius:14px;background:#101010;border:1px solid var(--border-light);color:var(--accent);font-size:.55em;margin:0 .08em}
+  .display .ic{display:inline-grid;place-items:center;vertical-align:-.18em;width:1.1em;height:1.1em;border-radius:14px;background:var(--surface-3);border:1px solid var(--border-light);color:var(--accent);font-size:.55em;margin:0 .08em}
 
-  /* motion-word base state */
-  .motion-word, .motion-inline-piece{display:inline-block;will-change:opacity,filter,transform;opacity:.16;filter:blur(10px);transform:translateY(28px)}
-  .motion-piece{display:block;will-change:opacity,filter,transform;opacity:.16;filter:blur(10px);transform:translateY(28px)}
+  /* motion-word base state.
+     No persistent will-change here: these selectors match every animated word
+     and piece (often hundreds), and pinning a compositor layer + a blur filter
+     on all of them at once is the "layer explosion" cost. The browser still
+     promotes them for the duration that opacity/filter/transform animate. */
+  .motion-word, .motion-inline-piece{display:inline-block;opacity:.16;filter:blur(10px);transform:translateY(28px)}
+  .motion-piece{display:block;opacity:.16;filter:blur(10px);transform:translateY(28px)}
 
   /* prefers-reduced-motion: show every reveal in its final state, no scrub.
      !important so it wins over the inline styles motion.js / scroll.js write,
@@ -231,6 +271,52 @@
     .motion-word, .motion-inline-piece, .motion-piece{
       opacity:1!important;filter:none!important;transform:none!important;
     }
+    .giant{clip-path:inset(0 0 0 0)!important;transition:none!important}
+
+    /* Collapse the scroll-scrubbed laptop intro + fixed-hero choreography
+       into a plain, static top-of-page layout. intro.js and scroll.js also
+       bail out under reduced motion, so there is no scroll-jacking and no
+       forced 1.8s stop — the page scrolls normally from the first frame. */
+    .intro-stage,.enter-pill,.hero-lock-badge{display:none!important}
+    .intro-spacer,.hero-spacer{height:0!important}
+    #hero-content{
+      position:relative!important;inset:auto!important;
+      height:auto;min-height:60vh;z-index:8;
+      pointer-events:auto!important;padding:120px 24px;
+    }
+    .hero-inner{transform:none!important;opacity:1!important;filter:none!important}
+    body.intro-active #bg-video-stack,
+    body.intro-active #hero-content,
+    body.intro-active .nav,
+    body.intro-active .edge-blur,
+    body.intro-active .noise{opacity:1!important}
+
+    /* silence the infinite ambient loops */
+    .noise{animation:none!important}
+    .nav-wave i{animation:none!important}
+    .imageMask .c-glitch__img{animation:none!important}
+  }
+
+  /* Small screens get the same static, no-scrub layout as reduced motion. The
+     scroll-scrubbed video, Lenis smooth-scroll and per-frame word reveal are a
+     heavy load on phones, so intro.js / scroll.js / motion.js switch to their
+     static path at this breakpoint and these rules keep the page laid out and
+     fully visible even if that JS never runs. */
+  @media (max-width:760px){
+    .intro-stage,.enter-pill,.hero-lock-badge{display:none!important}
+    .intro-spacer,.hero-spacer{height:0!important}
+    #hero-content{
+      position:relative!important;inset:auto!important;
+      height:auto;min-height:70vh;z-index:8;
+      pointer-events:auto!important;padding:110px 24px 60px;
+    }
+    .hero-inner{transform:none!important;opacity:1!important;filter:none!important}
+    body.intro-active #bg-video-stack,
+    body.intro-active #hero-content,
+    body.intro-active .nav,
+    body.intro-active .edge-blur,
+    body.intro-active .noise{opacity:1!important}
+    .motion-word,.motion-inline-piece,.motion-piece{opacity:1!important;filter:none!important;transform:none!important}
     .giant{clip-path:inset(0 0 0 0)!important;transition:none!important}
   }
 
@@ -264,14 +350,14 @@
   .caseInfo .cmeta b{color:#fff;font-weight:500;margin-left:6px}
   .caseInfo .tagline{font-family:var(--font-mono);font-size:15px;line-height:1.4;color:#fff;letter-spacing:-.01em;text-transform:none;max-width:440px;margin-bottom:14px}
   .caseInfo .status{display:inline-block;margin-left:10px;padding:3px 9px;border-radius:999px;font-size:9px;letter-spacing:.14em;vertical-align:middle}
-  .caseInfo .status.live{color:#7CFC00;background:rgba(124,252,0,.12);border:1px solid rgba(124,252,0,.4)}
+  .caseInfo .status.live{color:var(--accent);background:rgba(var(--accent-rgb),.12);border:1px solid rgba(var(--accent-rgb),.4)}
   .caseInfo .status.build{color:#E8B341;background:rgba(232,179,65,.12);border:1px solid rgba(232,179,65,.4)}
   .caseInfo .status.beta{color:#9b8cff;background:rgba(139,92,246,.14);border:1px solid rgba(139,92,246,.45)}
   .caseInfo .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px;max-width:460px}
   .caseInfo .chips .chip{font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);padding:6px 11px;border:1px solid var(--border-light);border-radius:999px;white-space:nowrap}
 
   /* imageMask + glitch effect */
-  .imageMask{position:relative;aspect-ratio:16/11;border:1px solid var(--border-light);background:#0a0a0a;overflow:hidden;cursor:none}
+  .imageMask{position:relative;aspect-ratio:16/11;border:1px solid var(--border-light);background:var(--bg);overflow:hidden;cursor:none}
   .c-glitch{position:absolute;inset:0}
   .c-glitch__img{position:absolute;inset:0;background-size:cover;background-position:center}
   .c-glitch__img:nth-child(2){animation:glitch1 2.2s linear infinite;mix-blend-mode:screen}
@@ -295,7 +381,7 @@
     88%{clip-path:inset(25% 0 65% 0);transform:translate3d(3px,0,0)}
   }
   .imageMask .frame-bar{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;gap:6px;padding:10px 14px;background:rgba(10,10,10,.6);backdrop-filter:blur(6px);border-bottom:1px solid var(--border);z-index:5}
-  .imageMask .frame-bar i{width:8px;height:8px;border-radius:50%;background:#2a2a2a}
+  .imageMask .frame-bar i{width:8px;height:8px;border-radius:50%;background:var(--surface-4)}
   .imageMask .frame-bar .url{margin-left:auto;font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;color:rgba(255,255,255,.4)}
 
   /* experience grid */
@@ -312,7 +398,7 @@
   .col .item .role{font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#cfcfcf;margin-bottom:8px}
 
   /* featured automation card */
-  .col.feature .autoCard{padding:26px;border:1px solid rgba(124,252,0,.28);border-radius:14px;background:linear-gradient(180deg,rgba(124,252,0,.06),rgba(124,252,0,0))}
+  .col.feature .autoCard{padding:26px;border:1px solid rgba(var(--accent-rgb),.28);border-radius:14px;background:linear-gradient(180deg,rgba(var(--accent-rgb),.06),rgba(var(--accent-rgb),0))}
   .col.feature .autoKicker{color:var(--accent);letter-spacing:.16em}
   .col.feature .autoTitle{text-transform:none;font-size:24px;line-height:1.1;margin:8px 0 12px;letter-spacing:-.015em}
   .col.feature .autoList{list-style:none;margin:16px 0 20px;display:flex;flex-direction:column;gap:9px}
