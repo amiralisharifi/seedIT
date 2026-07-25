@@ -291,6 +291,17 @@ img, svg { display: block; }
   to { transform: translateX(-50%); }
 }
 
+/* Mobile: compress hero + marquee spacing so the gap before "What we do"
+   doesn't balloon on small screens. Desktop (>600px) is untouched; the
+   clamps scale spacing down smoothly between ~600px and 320px. */
+@media (max-width: 600px) {
+  .hero { padding-top: clamp(88px, 22vw, 112px); padding-bottom: clamp(40px, 10vw, 56px); }
+  .marquee { margin-top: clamp(40px, 12vw, 56px); }
+  /* Safety net: only breaks a word if it can't otherwise fit the viewport,
+     so normal space-wrapping (and the desktop layout) are unaffected. */
+  .hero h1 { overflow-wrap: break-word; }
+}
+
 /* ===============  SECTION HEADER  =============== */
 .section { padding: 140px 0; position: relative; }
 .section-head {
@@ -508,7 +519,9 @@ img, svg { display: block; }
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
-@media (max-width: 880px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+/* minmax(0, 1fr) lets the two mobile columns share width fluidly and
+   prevents wide content from blowing the track out past the viewport. */
+@media (max-width: 880px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .stat {
   padding: 60px 32px;
   border-right: 1px solid var(--line);
@@ -517,6 +530,13 @@ img, svg { display: block; }
 @media (max-width: 880px) {
   .stat:nth-child(2) { border-right: none; }
   .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 1px solid var(--line); }
+}
+@media (max-width: 600px) {
+  .stat { padding: 40px 20px; }
+  /* Reserve two lines of height for the number so the label sits at the
+     same vertical position in every cell, even when a value such as
+     "~3 wk" wraps to two lines on a narrow phone. */
+  .stat-num { min-height: 2em; }
 }
 .stat-num {
   font-family: var(--display);
