@@ -8,7 +8,7 @@
  * Both directions are authenticated by a shared secret in a header.
  */
 
-const baseUrl = process.env.N8N_WEBHOOK_BASE ?? 'https://n8n.ayvan.me/webhook';
+const baseUrl = process.env.N8N_WEBHOOK_BASE ?? 'https://ayvan.me/webhook';
 const sharedSecret = process.env.N8N_SHARED_SECRET;
 
 /** Trigger a workflow by hitting its webhook URL. */

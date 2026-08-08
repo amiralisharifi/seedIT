@@ -42,8 +42,8 @@ exists in the repo. This is a **port + de-hardcode + extend** job, not a rebuild
   button, and mobile menu.
 - Content visible without JS; respect `prefers-reduced-motion`.
 - `pnpm typecheck && pnpm lint && pnpm build` green before each phase is "done".
-  (Note: `next lint` is broken on Next 16 repo-wide — fix in Phase 0 or accept
-  typecheck as the gate.)
+  (`pnpm lint` now runs the ESLint CLI against `eslint.config.mjs` in each app —
+  the old `next lint` script was removed in Next 16.)
 
 ---
 

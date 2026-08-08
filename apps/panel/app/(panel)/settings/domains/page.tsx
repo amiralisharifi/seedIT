@@ -69,8 +69,12 @@ export default async function DomainsPage() {
   const emailDomain = integrations.resend.enabled
     ? `https://${integrations.resend.domain}`
     : null;
-  const plausibleDomain = integrations.plausible.enabled
-    ? `https://${integrations.plausible.domain}`
+  // NOTE: `plausible.domain` is the site Plausible *tracks*; `plausible.apiHost`
+  // is where Plausible itself runs. This row reports whether the analytics host
+  // is up, so it must check apiHost — checking `domain` just re-pings a site
+  // already covered by the rows above and reports green regardless.
+  const plausibleHost = integrations.plausible.enabled
+    ? integrations.plausible.apiHost
     : null;
   const n8nBaseUrl = integrations.n8n.enabled ? integrations.n8n.baseUrl : null;
 
@@ -78,7 +82,7 @@ export default async function DomainsPage() {
     checkReachable(publicSite),
     checkReachable(adminPanel),
     emailDomain ? checkReachable(emailDomain) : Promise.resolve(null),
-    plausibleDomain ? checkReachable(plausibleDomain) : Promise.resolve(null),
+    plausibleHost ? checkReachable(plausibleHost) : Promise.resolve(null),
     n8nBaseUrl ? checkReachable(originOf(n8nBaseUrl)) : Promise.resolve(null),
   ]);
 
@@ -112,12 +116,12 @@ export default async function DomainsPage() {
           },
         ]
       : []),
-    ...(plausibleDomain
+    ...(plausibleHost
       ? [
           {
             label: 'Analytics',
-            url: plausibleDomain,
-            note: 'Plausible host.',
+            url: plausibleHost,
+            note: `Self-hosted Plausible. Tracks ${integrations.plausible.domain}.`,
             check: plausibleR,
           },
         ]

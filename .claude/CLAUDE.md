@@ -24,7 +24,7 @@ Two halves living in one app:
 | Monorepo         | Turborepo + pnpm workspaces       |
 | Framework        | Next.js 15 (App Router)           |
 | Language         | TypeScript (strict mode)          |
-| Database         | Supabase Postgres (Frankfurt)     |
+| Database         | Supabase Postgres (Mumbai, ap-south-1) |
 | ORM              | Drizzle                           |
 | Auth             | Supabase Auth (magic link)        |
 | Styling          | Tailwind + shadcn-style           |

@@ -4,19 +4,9 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { collections } from '@/config';
 import { queries } from '@seed-panel/db';
-import type { CollectionDefinition, FieldDef } from '@seed-panel/core';
-
-// Field types whose values are human-language content — eligible to live in the
-// localized `content` jsonb on a localized collection. Every other type maps to a
-// real top-level column.
-const LOCALIZABLE_TYPES = new Set(['text', 'textarea', 'richText']);
-
-// The Drizzle property name a field writes to on its table.
-function colName(name: string, field: FieldDef): string {
-  if (field.type === 'image') return name + 'Url';
-  if (field.type === 'reference') return name + 'Id';
-  return name;
-}
+import type { CollectionDefinition } from '@seed-panel/core';
+import { colName, isLocalizedField } from '@/lib/cms/field-mapping';
+import { revalidatePublicContent } from '@/lib/cms/revalidate';
 
 function buildRecord(
   col: CollectionDefinition,
@@ -30,12 +20,9 @@ function buildRecord(
     const raw = fd.get(`f_${name}`);
     const column = colName(name, field);
 
-    // A content field goes into the localized `content` jsonb — but ONLY when
-    // it isn't backed by a real top-level column. Fields like `path`,
-    // `clientName`, or `seoTitle` have their own column, so they must write
-    // there even on a localized collection; otherwise the column stays null and
-    // NOT-NULL constraints fail (e.g. pages.path).
-    if (col.localized && LOCALIZABLE_TYPES.has(field.type) && !columns.has(column)) {
+    // Localized content goes into the `content` jsonb, but only when it isn't
+    // backed by a real column — see isLocalizedField for why.
+    if (isLocalizedField(col, name, field, columns)) {
       if (raw !== null) contentEn[name] = raw as string;
       continue;
     }
@@ -64,6 +51,10 @@ function buildRecord(
   }
 
   if (Object.keys(contentEn).length > 0) {
+    // NOTE: this replaces `content` wholesale, so `ar` is reset on every save.
+    // Harmless while the site is English-only, but it MUST become a merge with
+    // the existing row before any Arabic translation is entered — otherwise the
+    // first edit to a bilingual post silently drops its Arabic side.
     record.content = { en: contentEn, ar: {} };
   }
 
@@ -71,49 +62,6 @@ function buildRecord(
 }
 
 export type ActionResult = { error: string } | { id: string };
-
-function getPublicRevalidateUrl() {
-  const publicSiteUrl = process.env.PUBLIC_SITE_URL;
-  if (!publicSiteUrl) return null;
-
-  try {
-    return new URL('/api/revalidate', publicSiteUrl).toString();
-  } catch {
-    console.warn('PUBLIC_SITE_URL is not a valid URL; skipping public site revalidation.');
-    return null;
-  }
-}
-
-async function revalidatePublicContent(collectionSlug: string, slug?: unknown) {
-  if (collectionSlug !== 'blog_posts') return;
-
-  const revalidateUrl = getPublicRevalidateUrl();
-  const secret = process.env.REVALIDATE_SECRET;
-  if (!revalidateUrl || !secret) return;
-
-  const paths = ['/blog'];
-  if (typeof slug === 'string' && slug.length > 0) {
-    paths.push(`/blog/${slug}`);
-  }
-
-  await Promise.allSettled(
-    paths.map(async (path) => {
-      const response = await fetch(revalidateUrl, {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          'x-revalidate-secret': secret,
-        },
-        body: JSON.stringify({ path }),
-        signal: AbortSignal.timeout(5_000),
-      });
-
-      if (!response.ok) {
-        console.warn(`Public site revalidation failed for ${path}: ${response.status}`);
-      }
-    }),
-  );
-}
 
 export async function createRecord(
   collectionSlug: string,

@@ -485,6 +485,22 @@ export const activityLog = pgTable(
 // Shape: { en: { title: "...", body: "..." }, ar: { title: "...", body: "..." } }
 export type LocalizedContent = Record<string, Record<string, unknown>>;
 
+// Extra SEO metadata for blog posts. Every key is optional — writers (n8n, the
+// admin form) fill in what they have. Kept open-ended on purpose: adding a new
+// signal shouldn't need a migration.
+export interface BlogPostSeo {
+  focusKeyword?: string;
+  secondaryKeywords?: string[];
+  canonicalUrl?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImageUrl?: string;
+  twitterCard?: string;
+  robotsIndex?: boolean;
+  robotsFollow?: boolean;
+  includeInSitemap?: boolean;
+}
+
 export const blogPosts = pgTable(
   'blog_posts',
   {
@@ -501,6 +517,10 @@ export const blogPosts = pgTable(
     seoTitle: text('seo_title'),
     seoDescription: text('seo_description'),
     seoNoindex: boolean('seo_noindex').notNull().default(false),
+    // Open-ended SEO metadata the admin form doesn't model as first-class fields
+    // (focus keyword, canonical URL, OG/Twitter overrides, robots directives).
+    // jsonb so the SEO writer can add keys without a migration each time.
+    seo: jsonb('seo').$type<BlogPostSeo>().notNull().default({}),
     viewCount: integer('view_count').notNull().default(0),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true })

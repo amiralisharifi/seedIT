@@ -69,7 +69,7 @@ export const integrations: IntegrationsConfig = {
   /* ---------- n8n (workflow orchestration on ayvan.me) ---------- */
   n8n: {
     enabled: true,
-    baseUrl: process.env.N8N_WEBHOOK_BASE ?? 'https://n8n.ayvan.me/webhook',
+    baseUrl: process.env.N8N_WEBHOOK_BASE ?? 'https://ayvan.me/webhook',
     // Webhook paths n8n exposes for each workflow
     workflows: {
       scrape: '/scrape',
