@@ -5,8 +5,9 @@
  * logged out unexpectedly) and redirects unauthenticated users to /login
  * when they try to access protected routes.
  *
- * Two route categories:
- *   - PUBLIC: /login, /auth/* (callback URLs)
+ * Three route categories:
+ *   - MACHINE:   /api/n8n/*, /api/webhooks/* — skipped entirely (see below)
+ *   - PUBLIC:    /login, /auth/* (callback URLs)
  *   - PROTECTED: everything else
  *
  * Note: we keep the auth check loose here ("is there a session?") and let
@@ -19,8 +20,26 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 const PUBLIC_PATHS = ['/login', '/auth'];
 
+/**
+ * Machine-to-machine endpoints. These authenticate themselves — n8n sends the
+ * shared secret (`verifyN8nRequest`), providers sign their webhooks — and they
+ * arrive with no session cookie. Without this exemption the redirect below
+ * bounces them to /login with a 307, so the route handler never runs and the
+ * caller sees an HTML redirect instead of its JSON response.
+ *
+ * Deliberately NOT including `/api/trigger/*`: that direction is admin UI →
+ * n8n, called from the browser with a session, so it stays protected.
+ */
+const MACHINE_PATHS = ['/api/n8n', '/api/webhooks'];
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Return before touching Supabase — there's no session to refresh, and this
+  // runs on every inbound webhook.
+  if (MACHINE_PATHS.some((p) => pathname.startsWith(p))) {
+    return NextResponse.next();
+  }
 
   // Static assets and Next internals are excluded via the matcher below
   const response = NextResponse.next({ request });
