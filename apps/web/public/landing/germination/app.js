@@ -140,7 +140,9 @@
   /* ---------- scroll: progress, nav, spy, parallax ---------- */
   var prog = d.querySelector('.prog'), nav = d.getElementById('gnav'),
     shots = [].slice.call(d.querySelectorAll('[data-parallax]')),
-    links = [].slice.call(d.querySelectorAll('.nav-links a')),
+    /* hash links only: the spy maps each href to an on-page section, and
+       route links like /blog would make querySelector throw. */
+    links = [].slice.call(d.querySelectorAll('.nav-links a[href^="#"]')),
     secs = links.map(function (a) { return d.querySelector(a.getAttribute('href')); }),
     queued = false;
 

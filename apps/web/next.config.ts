@@ -11,6 +11,13 @@ const config: NextConfig = {
       { protocol: 'https', hostname: '*.supabase.co' },
     ],
   },
+  async redirects() {
+    return [
+      // The Germination variant was promoted to the home page; keep links
+      // shared during the staging period working.
+      { source: '/germination', destination: '/', permanent: true },
+    ];
+  },
 };
 
 export default config;
