@@ -314,3 +314,113 @@ html:not(.js) .bars i{transform:scaleY(1)}
   .js .deck-stage{display:grid;gap:14px;height:auto}
   .js .dk{position:relative;inset:auto;transform:none!important;opacity:1!important}
 }
+
+/* ============================================================
+   Subpages (blog, CMS pages, 404) — same world, calmer weather.
+   ============================================================ */
+
+/* Legacy-token bridge: CMS blocks and older markup style themselves with the
+   old site's custom properties and utility classes. Inside .germination those
+   names resolve to Germination values, so legacy inline styles inherit the
+   new palette and faces without markup churn. */
+.germination{
+  --font-display:var(--disp);
+  --font-body:var(--sans);
+  --font-mono:var(--mono);
+  --text:var(--bone);
+  --text-muted:var(--dim);
+  --muted:var(--dim);
+  --border:var(--line);
+  --surface:var(--ink-2);
+  --bg:var(--ink);
+  --brand-cyan:var(--acid);
+}
+
+/* Always-solid nav for pages without the home hero behind it. */
+.nav.solid{background:rgba(10,11,9,.88);backdrop-filter:blur(16px) saturate(1.4);border-bottom-color:var(--line-2)}
+
+/* Page shell under the fixed 74px nav. */
+.page{padding-top:calc(74px + clamp(30px,6vw,80px));padding-bottom:clamp(72px,10vw,150px)}
+.page-hd{padding-bottom:clamp(22px,3vw,40px);border-bottom:1px solid var(--line)}
+.page-hd h1{font-size:clamp(2.6rem,1.6rem + 4.6vw,5.6rem);margin-top:1.1rem}
+.page-hd h1 em{font-style:normal;color:var(--acid)}
+.page-hd .lead{color:var(--dim);margin-top:1.2rem;max-width:52ch}
+
+/* ---------- blog index ---------- */
+.post-row{display:block;position:relative;isolation:isolate;color:var(--bone)}
+.post-row::before{content:"";position:absolute;inset:0 calc(var(--gut) * -1);z-index:-1;background:linear-gradient(90deg,rgba(205,243,74,.07),rgba(205,243,74,.015) 55%,transparent);opacity:0;transition:opacity .45s var(--ez)}
+.post-row:hover::before{opacity:1}
+.post-in{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:clamp(16px,3vw,48px);align-items:start;padding:clamp(24px,3.2vw,44px) 0;border-bottom:1px solid var(--line)}
+.post-in h2{font-size:clamp(1.5rem,1.15rem + 1.7vw,2.6rem);letter-spacing:-.035em;line-height:1;transition:color .25s}
+.post-row:hover .post-in h2{color:var(--acid)}
+.post-exc{color:var(--dim);margin-top:.7rem;max-width:64ch;font-size:.98rem;line-height:1.6}
+.post-side{display:flex;flex-direction:column;align-items:flex-end;gap:.9rem}
+.post-date{font:500 .72rem/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--dim-2);white-space:nowrap;padding-top:.5rem}
+.post-go{width:2.1rem;height:2.1rem;display:grid;place-items:center;border:1px solid var(--line);color:var(--dim);transition:background-color .35s,color .35s,border-color .35s,transform .45s var(--ez)}
+.post-row:hover .post-go{background:var(--acid);border-color:var(--acid);color:var(--acid-ink);transform:rotate(45deg)}
+@media (max-width:640px){
+  .post-in{grid-template-columns:1fr}
+  .post-side{flex-direction:row-reverse;align-items:center;justify-content:flex-end;gap:1rem}
+  .post-date{padding-top:0}
+}
+.posts-empty{padding:clamp(40px,6vw,80px) 0;color:var(--dim);font:400 .9rem/1.7 var(--mono)}
+
+/* Legacy .tag chips (blog rows, CMS content) → Germination chip. */
+.germination .tag{display:inline-block;font:500 .64rem/1 var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--dim);padding:.4rem .5rem;background:rgba(241,240,230,.045);white-space:nowrap;border-radius:0}
+.chips{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:1rem}
+
+/* ---------- article ---------- */
+.art{max-width:760px;margin-inline:auto}
+.crumb{display:inline-flex;align-items:center;gap:.45rem;font:500 .72rem/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.crumb:hover{color:var(--acid)}
+.art-hd{margin:1.6rem 0 2.4rem}
+.art-hd h1{font-size:clamp(2.1rem,1.4rem + 3.4vw,4rem);letter-spacing:-.04em;line-height:.98;margin:.9rem 0 1.1rem}
+.art-lead{color:var(--dim);font-size:clamp(1.02rem,1rem + .3vw,1.18rem);line-height:1.6;max-width:58ch}
+.art-meta{display:flex;flex-wrap:wrap;align-items:center;gap:.9rem 1.4rem;margin-top:1.4rem;padding-top:1.2rem;border-top:1px solid var(--line-2)}
+.art-meta time{font:500 .72rem/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--dim-2)}
+.art-meta .chips{margin-top:0}
+.art-cover{margin:0 0 2.4rem;border:1px solid var(--line-2)}
+.art-cover img{width:100%;height:auto}
+.art-end{margin-top:clamp(40px,6vw,72px);padding-top:clamp(22px,3vw,36px);border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-between;align-items:center}
+
+/* Long-form body. Scoped so the panel-authored HTML lands styled. */
+.germination .prose{color:var(--bone-2);line-height:1.75;font-size:1.05rem}
+.germination .prose p{margin:0 0 1.3em}
+.germination .prose h2,.germination .prose h3,.germination .prose h4{color:var(--bone);font-weight:700;line-height:1.08;letter-spacing:-.02em;margin:2em 0 .65em}
+.germination .prose h2{font-size:clamp(1.5rem,1.3rem + 1vw,2rem)}
+.germination .prose h3{font-size:clamp(1.2rem,1.1rem + .6vw,1.5rem)}
+.germination .prose h4{font-size:1.05rem}
+.germination .prose a{color:var(--acid);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+.germination .prose a:hover{color:var(--bone)}
+.germination .prose strong{color:var(--bone);font-weight:600}
+.germination .prose ul,.germination .prose ol{margin:0 0 1.3em;padding-left:1.35rem}
+.germination .prose li{margin-bottom:.45em}
+.germination .prose li::marker{color:var(--acid)}
+.germination .prose blockquote{margin:1.8em 0;padding:.2rem 0 .2rem 1.2rem;border-left:2px solid var(--line);color:var(--bone)}
+.germination .prose code{font:500 .86em/1.5 var(--mono);background:rgba(241,240,230,.07);padding:.15em .4em}
+.germination .prose pre{background:var(--ink-2);border:1px solid var(--line-2);padding:1.1rem 1.3rem;overflow-x:auto;margin:0 0 1.5em}
+.germination .prose pre code{background:none;padding:0;font-size:.85rem}
+.germination .prose img{border:1px solid var(--line-2);margin:1.8em 0}
+.germination .prose hr{border:0;height:1px;background:var(--line);margin:2.4em 0}
+.germination .prose figcaption{font:400 .78rem/1.5 var(--mono);color:var(--dim);margin-top:.6rem}
+
+/* Legacy .btn-primary (CMS blocks) → Germination CTA. */
+.germination .btn-primary{position:relative;display:inline-flex;align-items:center;gap:.6rem;padding:.85rem 1.35rem;overflow:hidden;font:600 .82rem/1 var(--mono);letter-spacing:.02em;text-transform:uppercase;background:var(--acid);color:var(--acid-ink);border-radius:0;transition:color .3s,transform .25s var(--ez)}
+.germination .btn-primary span{position:relative;z-index:1}
+.germination .btn-primary::before{content:"";position:absolute;inset:0;background:var(--bone);transform:translateY(101%);transition:transform .42s var(--ez)}
+.germination .btn-primary:hover{color:var(--acid-ink);transform:translateY(-2px)}
+.germination .btn-primary:hover::before{transform:translateY(0)}
+
+/* FAQ block: native <details> with an acid + marker. */
+.germination details summary{list-style:none;position:relative;padding-right:2.2rem}
+.germination details summary::-webkit-details-marker{display:none}
+.germination details summary::after{content:"+";position:absolute;right:.2rem;top:50%;transform:translateY(-50%);color:var(--dim);font:500 1.1rem/1 var(--mono);transition:transform .3s var(--ez),color .25s}
+.germination details summary:hover::after{color:var(--acid)}
+.germination details[open] summary::after{transform:translateY(-50%) rotate(45deg);color:var(--acid)}
+
+/* ---------- 404 ---------- */
+.nf{min-height:60vh;display:grid;align-content:center}
+.nf h1{font-size:clamp(2.8rem,1.8rem + 5vw,6rem);margin:1.1rem 0 1.2rem}
+.nf h1 em{font-style:normal;color:var(--acid)}
+.nf p{color:var(--dim);max-width:46ch;margin-bottom:2rem}
+.nf-acts{display:flex;flex-wrap:wrap;gap:.8rem}

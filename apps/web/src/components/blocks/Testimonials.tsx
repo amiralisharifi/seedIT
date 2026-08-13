@@ -23,7 +23,7 @@ export function Testimonials({ data }: { data: TestimonialsData }) {
         {items.map((t, i) => (
           <figure
             key={i}
-            style={{ border: '1px solid var(--border)', borderRadius: '12px', padding: '1.75rem', margin: 0 }}
+            style={{ border: '1px solid var(--border)', padding: '1.75rem', margin: 0 }}
           >
             {t.quote && (
               <blockquote style={{ margin: 0, fontSize: '1.05rem', lineHeight: 1.6, color: 'var(--text)' }}>

@@ -3,16 +3,21 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SITE_URL } from '@/lib/site';
 import { getSeoDefaults } from '@/lib/seo';
+import SiteNav from '@/components/site/SiteNav';
+import SiteFooter from '@/components/site/SiteFooter';
+import '../germination.css';
 
 export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
   const defaults = await getSeoDefaults();
+  // The root layout's title template appends "· siteName"; the plain segment
+  // title avoids a doubled suffix. OG/Twitter take the full string directly.
   const title = `Blog · ${defaults.siteName}`;
   const description = `Insights on web development, automation and design from the ${defaults.siteName} studio in Dubai.`;
   const url = `${SITE_URL}/blog`;
   return {
-    title,
+    title: 'Blog',
     description,
     alternates: { canonical: url },
     openGraph: {
@@ -50,45 +55,22 @@ export default async function BlogPage() {
   }
 
   return (
-    <>
-      <nav className="nav scrolled" id="nav">
-        <div className="container nav-inner">
-          <a href="/" className="logo" aria-label="SEED IT — home">
-            <span className="logo-text">
-              <span className="name">SEED IT</span>
-              <span className="tag">We make IT on time</span>
-            </span>
-          </a>
-          <div className="nav-links">
-            <a href="/#services">Services</a>
-            <a href="/#approach">Approach</a>
-            <a href="/blog" className="active">Blog</a>
-            <a href="/#contact" className="nav-cta">
-              Book a call <span className="arrow">→</span>
-            </a>
-          </div>
-        </div>
-      </nav>
+    <div className="germination">
+      <SiteNav active="blog" />
 
-      <main style={{ paddingTop: '80px', minHeight: '100vh' }}>
-        <div className="container" style={{ paddingTop: '4rem', paddingBottom: '6rem' }}>
-          <div style={{ marginBottom: '3rem' }}>
-            <div className="section-label">From the studio</div>
-            <h1 className="section-title" style={{ maxWidth: '600px' }}>
-              Writing on web, automation &amp; <em className="grad">design</em>.
-            </h1>
-          </div>
+      <main id="gmain" className="page">
+        <div className="wrap">
+          <header className="page-hd">
+            <p className="eyebrow">From the studio</p>
+            <h1>Writing on web, automation &amp; <em>design</em>.</h1>
+          </header>
 
           {dbError ? (
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontFamily: 'monospace' }}>
-              DB error: {dbError}
-            </p>
+            <p className="posts-empty">Couldn&apos;t load posts — {dbError}</p>
           ) : posts.length === 0 ? (
-            <p style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>
-              No posts yet — check back soon.
-            </p>
+            <p className="posts-empty">No posts yet — check back soon.</p>
           ) : (
-            <div style={{ display: 'grid', gap: '2px' }}>
+            <div>
               {posts.map((post) => {
                 const en = getEn(post.content);
                 const title = en.title ?? post.slug;
@@ -102,65 +84,23 @@ export default async function BlogPage() {
                   : '';
 
                 return (
-                  <Link
-                    key={post.id}
-                    href={`/blog/${post.slug}`}
-                    style={{ textDecoration: 'none', display: 'block' }}
-                  >
-                    <article
-                      style={{
-                        padding: '2rem 0',
-                        borderBottom: '1px solid var(--border)',
-                        display: 'grid',
-                        gridTemplateColumns: '1fr auto',
-                        gap: '1rem',
-                        alignItems: 'start',
-                        cursor: 'pointer',
-                      }}
-                    >
+                  <Link key={post.id} href={`/blog/${post.slug}`} className="post-row">
+                    <article className="post-in">
                       <div>
-                        <h2
-                          style={{
-                            fontSize: '1.25rem',
-                            fontFamily: 'var(--font-display)',
-                            fontWeight: 600,
-                            color: 'var(--text)',
-                            marginBottom: '0.5rem',
-                          }}
-                        >
-                          {title}
-                        </h2>
-                        {excerpt && (
-                          <p
-                            style={{
-                              color: 'var(--text-muted)',
-                              fontSize: '0.95rem',
-                              lineHeight: 1.6,
-                              maxWidth: '680px',
-                            }}
-                          >
-                            {excerpt}
-                          </p>
-                        )}
+                        <h2>{title}</h2>
+                        {excerpt && <p className="post-exc">{excerpt}</p>}
                         {post.tags.length > 0 && (
-                          <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                          <div className="chips">
                             {post.tags.map((tag) => (
                               <span key={tag} className="tag">{tag}</span>
                             ))}
                           </div>
                         )}
                       </div>
-                      <time
-                        style={{
-                          color: 'var(--text-muted)',
-                          fontSize: '0.8rem',
-                          fontFamily: 'var(--font-mono)',
-                          whiteSpace: 'nowrap',
-                          paddingTop: '0.25rem',
-                        }}
-                      >
-                        {date}
-                      </time>
+                      <div className="post-side">
+                        {date && <time className="post-date">{date}</time>}
+                        <span className="post-go" aria-hidden="true">↗</span>
+                      </div>
                     </article>
                   </Link>
                 );
@@ -170,14 +110,7 @@ export default async function BlogPage() {
         </div>
       </main>
 
-      <footer className="footer">
-        <div className="container">
-          <div className="footer-bottom">
-            <div className="footer-meta">© 2026 SEED IT · Dubai, UAE</div>
-            <a href="/" className="footer-back">← Back to home</a>
-          </div>
-        </div>
-      </footer>
-    </>
+      <SiteFooter />
+    </div>
   );
 }

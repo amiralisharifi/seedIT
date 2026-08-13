@@ -1,6 +1,9 @@
 import type { CSSProperties } from 'react';
 import type { Metadata } from 'next';
 import Script from 'next/script';
+import AcidMark from '@/components/site/AcidMark';
+import SiteFooter from '@/components/site/SiteFooter';
+import { CONTACT_EMAIL, PHONE, WHATSAPP, LICENCE } from '@/lib/brand';
 import './germination.css';
 
 export const metadata: Metadata = {
@@ -12,16 +15,6 @@ export const metadata: Metadata = {
   alternates: { canonical: '/' },
 };
 
-/*
-  Brand strings are kept in one place at the top of this file rather than
-  scattered through the markup. Longer term these should move into a shared
-  brand/site config (see AGENTS.md rule #1) so a fork can override them.
-*/
-const CONTACT_EMAIL = 'ceo@seedit.ae';
-const PHONE = '+971 54 443 5527';
-const WHATSAPP = 'https://wa.me/971544435527';
-const LICENCE = '1112101';
-
 // Custom CSS properties (--i, --h, ...) aren't in React's CSSProperties type.
 const cv = (o: Record<string, string | number>) => o as CSSProperties;
 
@@ -30,25 +23,6 @@ const TECH = [
   'n8n', 'Stripe', 'WhatsApp Cloud API', 'GA4', 'Tag Manager', 'Cloudflare',
   'Vercel', 'Schema.org', 'SPF / DKIM / DMARC',
 ];
-
-// Acid-lime plant mark: the same vector silhouette as <LogoMark>, filled with
-// currentColor (set to --acid in CSS) instead of the teal gradient PNG.
-function AcidMark() {
-  return (
-    <svg
-      className="mark"
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="88 110 86 192"
-      aria-hidden="true"
-    >
-      <path
-        fill="currentColor"
-        transform="matrix(1,0,0,-1,0,409.707)"
-        d="M94.573 293.206V248.274C94.573 228.908 110.307 213.15 129.663 213.107V195.548L103.954 178.286C102.873 177.56 102.223 176.341 102.223 175.038V135.474C98.709 133.954 96.243 130.458 96.243 126.392 96.243 120.938 100.68 116.501 106.134 116.501 111.588 116.501 116.026 120.938 116.026 126.392 116.026 130.458 113.56 133.954 110.047 135.474V172.954L129.683 186.138V135.524C126.108 134.032 123.588 130.502 123.588 126.392 123.588 120.938 128.025 116.501 133.48 116.501 138.934 116.501 143.372 120.938 143.372 126.392 143.372 130.13 141.286 133.39 138.218 135.072 138.219 135.113 138.23 135.152 138.23 135.193V185.985L156.955 173.413V135.883C156.955 135.681 156.988 135.488 157.014 135.293 153.704 133.693 151.409 130.309 151.409 126.392 151.409 120.938 155.847 116.501 161.301 116.501 166.756 116.501 171.193 120.938 171.193 126.392 171.193 130.309 168.898 133.693 165.587 135.293 165.614 135.488 165.647 135.681 165.647 135.883V175.729C165.647 177.178 164.925 178.531 163.723 179.338L138.355 196.371V200.108H138.432C157.823 200.108 173.6 215.884 173.6 235.277V280.21H166.086C153.803 280.21 142.977 273.875 136.686 264.307 133.719 280.716 119.34 293.206 102.088 293.206ZM102.213 248.274V285.565C117.335 285.498 129.615 273.175 129.615 258.039V220.747C114.493 220.814 102.213 233.136 102.213 248.274M138.559 245.041C138.559 260.177 150.84 272.499 165.959 272.568V235.277C165.959 220.14 153.678 207.819 138.559 207.75ZM157.203 126.392C157.203 128.652 159.042 130.49 161.301 130.49 163.56 130.49 165.398 128.652 165.398 126.392 165.398 124.133 163.56 122.295 161.301 122.295 159.042 122.295 157.203 124.133 157.203 126.392M129.382 126.392C129.382 128.652 131.221 130.49 133.48 130.49 135.739 130.49 137.578 128.652 137.578 126.392 137.578 124.133 135.739 122.295 133.48 122.295 131.221 122.295 129.382 124.133 129.382 126.392M102.038 126.392C102.038 128.652 103.875 130.49 106.134 130.49 108.394 130.49 110.232 128.652 110.232 126.392 110.232 124.133 108.394 122.295 106.134 122.295 103.875 122.295 102.038 124.133 102.038 126.392"
-      />
-    </svg>
-  );
-}
 
 export default function HomePage() {
   return (
@@ -209,7 +183,7 @@ export default function HomePage() {
                     <div className="dk-f"><span>neshat.ae</span><em aria-hidden="true">↗</em></div>
                   </a>
 
-                  <a className="dk" href="https://counsel-saas.vercel.app" target="_blank" rel="noopener">
+                  <a className="dk" href="https://conseal.ae" target="_blank" rel="noopener">
                     <div className="dk-t"><span className="dk-n">03</span><span className="st">Beta</span><span className="dk-kind">AI SaaS</span></div>
                     <h3>Conseal</h3>
                     <div className="dk-b">
@@ -230,7 +204,7 @@ export default function HomePage() {
                         </div>
                       </div>
                     </div>
-                    <div className="dk-f"><span>Conseal</span><em aria-hidden="true">↗</em></div>
+                    <div className="dk-f"><span>conseal.ae</span><em aria-hidden="true">↗</em></div>
                   </a>
 
                   <a className="dk" href="https://ads-dashboard-weld.vercel.app" target="_blank" rel="noopener">
@@ -506,19 +480,7 @@ export default function HomePage() {
         </section>
       </main>
 
-      <footer className="foot">
-        <div className="wrap">
-          <p>Fertile Seed IT Solutions Est. — trading as SEED IT. Licensed in Dubai by the Department of Economy and Tourism, No. {LICENCE}.</p>
-          <nav aria-label="Footer">
-            <a href="#built">Built</a>
-            <a href="#work">What we do</a>
-            <a href="#how">How</a>
-            <a href="#licence">Licence</a>
-            <a href="/blog">Blog</a>
-            <a href="#contact">Contact</a>
-          </nav>
-        </div>
-      </footer>
+      <SiteFooter />
 
       <Script src="/landing/germination/app.js" strategy="afterInteractive" />
     </div>

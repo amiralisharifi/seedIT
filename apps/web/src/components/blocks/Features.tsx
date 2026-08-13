@@ -25,7 +25,6 @@ export function Features({ data }: { data: FeaturesData }) {
             key={i}
             style={{
               border: '1px solid var(--border)',
-              borderRadius: '12px',
               padding: '1.5rem',
               background: 'var(--surface, transparent)',
             }}

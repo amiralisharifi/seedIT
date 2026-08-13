@@ -4,6 +4,9 @@ import { notFound } from 'next/navigation';
 import { SITE_URL } from '@/lib/site';
 import { getSeoDefaults } from '@/lib/seo';
 import { BlockRenderer } from '@/components/blocks/BlockRenderer';
+import SiteNav from '@/components/site/SiteNav';
+import SiteFooter from '@/components/site/SiteFooter';
+import '../germination.css';
 
 // Public renderer for schema-driven `pages`. Catch-all, so any unmatched path
 // (e.g. /news, /company/about) is looked up by path and rendered from its
@@ -73,29 +76,14 @@ export default async function DynamicPage({ params }: Props) {
   if (!page) notFound();
 
   return (
-    <>
-      <nav className="nav scrolled" id="nav">
-        <div className="container nav-inner">
-          <a href="/" className="logo" aria-label="SEED IT — home">
-            <span className="logo-text">
-              <span className="name">SEED IT</span>
-              <span className="tag">We make IT on time</span>
-            </span>
-          </a>
-          <div className="nav-links">
-            <a href="/#services">Services</a>
-            <a href="/#approach">Approach</a>
-            <a href="/blog">Blog</a>
-            <a href="/#contact" className="nav-cta">
-              Book a call <span className="arrow">→</span>
-            </a>
-          </div>
-        </div>
-      </nav>
+    <div className="germination">
+      <SiteNav />
 
-      <main style={{ paddingTop: '80px', minHeight: '60vh' }}>
+      <main id="gmain" className="page">
         <BlockRenderer sections={page.sections} />
       </main>
-    </>
+
+      <SiteFooter />
+    </div>
   );
 }

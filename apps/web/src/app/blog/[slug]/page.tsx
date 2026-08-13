@@ -4,6 +4,9 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { SITE_URL } from '@/lib/site';
 import { getSeoDefaults } from '@/lib/seo';
+import SiteNav from '@/components/site/SiteNav';
+import SiteFooter from '@/components/site/SiteFooter';
+import '../../germination.css';
 
 export const revalidate = 3600;
 
@@ -106,134 +109,61 @@ export default async function BlogPostPage({ params }: Props) {
   };
 
   return (
-    <>
+    <div className="germination">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <nav className="nav scrolled" id="nav">
-        <div className="container nav-inner">
-          <a href="/" className="logo" aria-label="SEED IT — home">
-            <span className="logo-text">
-              <span className="name">SEED IT</span>
-              <span className="tag">We make IT on time</span>
-            </span>
-          </a>
-          <div className="nav-links">
-            <a href="/#services">Services</a>
-            <a href="/#approach">Approach</a>
-            <a href="/blog" className="active">Blog</a>
-            <a href="/#contact" className="nav-cta">
-              Book a call <span className="arrow">→</span>
-            </a>
-          </div>
-        </div>
-      </nav>
+      <SiteNav active="blog" />
 
-      <main style={{ paddingTop: '80px' }}>
-        <article style={{ maxWidth: '720px', margin: '0 auto', padding: '4rem 1.5rem 6rem' }}>
-          {/* Header */}
-          <header style={{ marginBottom: '2.5rem' }}>
-            <a
-              href="/blog"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                color: 'var(--text-muted)',
-                fontSize: '0.85rem',
-                fontFamily: 'var(--font-mono)',
-                textDecoration: 'none',
-                marginBottom: '1.5rem',
-              }}
-            >
-              ← All posts
-            </a>
-            {post.tags.length > 0 && (
-              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-                {post.tags.map((tag) => (
-                  <span key={tag} className="tag">{tag}</span>
-                ))}
+      <main id="gmain" className="page">
+        <div className="wrap">
+          <article className="art">
+            <header className="art-hd">
+              <a href="/blog" className="crumb">← All posts</a>
+              <h1>{title}</h1>
+              {excerpt && <p className="art-lead">{excerpt}</p>}
+              <div className="art-meta">
+                {date && <time>{date}</time>}
+                {post.tags.length > 0 && (
+                  <div className="chips">
+                    {post.tags.map((tag) => (
+                      <span key={tag} className="tag">{tag}</span>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-            <h1
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 'clamp(1.75rem, 4vw, 2.75rem)',
-                fontWeight: 700,
-                lineHeight: 1.15,
-                marginBottom: '1rem',
-              }}
-            >
-              {title}
-            </h1>
-            {excerpt && (
-              <p style={{ fontSize: '1.1rem', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '1rem' }}>
-                {excerpt}
-              </p>
-            )}
-            <time
-              style={{
-                fontSize: '0.8rem',
-                fontFamily: 'var(--font-mono)',
-                color: 'var(--text-muted)',
-              }}
-            >
-              {date}
-            </time>
-          </header>
+            </header>
 
-          {/* Cover image */}
-          {post.coverImageUrl && (
-            <div style={{ marginBottom: '2.5rem', borderRadius: '12px', overflow: 'hidden' }}>
-              <Image
-                src={post.coverImageUrl}
-                alt={post.coverImageAlt ?? title}
-                width={720}
-                height={405}
-                style={{ width: '100%', height: 'auto', display: 'block' }}
-              />
+            {post.coverImageUrl && (
+              <figure className="art-cover">
+                <Image
+                  src={post.coverImageUrl}
+                  alt={post.coverImageAlt ?? title}
+                  width={720}
+                  height={405}
+                  style={{ width: '100%', height: 'auto', display: 'block' }}
+                />
+              </figure>
+            )}
+
+            {body ? (
+              <div className="prose" dangerouslySetInnerHTML={{ __html: body }} />
+            ) : (
+              <p className="posts-empty">Content coming soon.</p>
+            )}
+
+            <div className="art-end">
+              <a href="/blog" className="crumb">← All posts</a>
+              <a href="/#contact" className="cta">
+                <span>Work with us</span><span className="arw" aria-hidden="true">↗</span>
+              </a>
             </div>
-          )}
-
-          {/* Body */}
-          {body ? (
-            <div
-              className="prose"
-              dangerouslySetInnerHTML={{ __html: body }}
-              style={{
-                color: 'var(--text)',
-                lineHeight: 1.8,
-                fontSize: '1.05rem',
-              }}
-            />
-          ) : (
-            <p style={{ color: 'var(--text-muted)' }}>Content coming soon.</p>
-          )}
-
-          {/* Footer */}
-          <div
-            style={{
-              marginTop: '4rem',
-              paddingTop: '2rem',
-              borderTop: '1px solid var(--border)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            <a
-              href="/blog"
-              style={{ color: 'var(--text-muted)', fontSize: '0.9rem', textDecoration: 'none' }}
-            >
-              ← All posts
-            </a>
-            <a href="/#contact" className="btn-primary" style={{ fontSize: '0.9rem' }}>
-              Work with us →
-            </a>
-          </div>
-        </article>
+          </article>
+        </div>
       </main>
-    </>
+
+      <SiteFooter />
+    </div>
   );
 }
